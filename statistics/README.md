@@ -8,16 +8,30 @@ A structured 14-week course taking learners from zero statistics knowledge to fu
 
 ```
 statistics/
-├── notebooks/      ← Weekly Jupyter notebooks (start here)
-└── reference/      ← Curriculum guides, exercises, and legacy docs
-    └── legacy/     ← Original teaching materials (attempt1)
+├── problem_notebooks/  ← Problem-driven EDA→prediction notebooks (recommended start)
+├── notebooks/          ← Weekly concept reference notebooks
+└── reference/          ← Curriculum guides, exercises, and legacy docs
+    └── legacy/         ← Original teaching materials (attempt1)
 ```
 
 ---
 
-## notebooks/ — Weekly Course Notebooks
+## problem_notebooks/ — Problem-Driven Notebooks (Recommended Start)
 
-Work through these in order. Each notebook is self-contained with explanations, step-by-step code, multiple real-world examples, and visualizations.
+Each notebook takes a real problem and walks through it completely: tabular data → column distributions → feature-target relationships → correlation heatmaps → feature engineering → prediction.
+
+| Notebook | Problem | Type |
+|---|---|---|
+| `Problem01_Titanic_Survival.ipynb` | Who survived the Titanic? | Classification |
+| `Problem02_House_Price_Prediction.ipynb` | What drives California house prices? | Regression |
+| `Problem03_Student_Performance.ipynb` | Which students will struggle? | Both |
+| `Problem04_Heart_Disease_Prediction.ipynb` | Who is at risk of heart disease? | Classification |
+
+---
+
+## notebooks/ — Weekly Concept Reference Notebooks
+
+Concept-focused notebooks organized by week. Use as a reference alongside the problem notebooks.
 
 | Notebook | Topics |
 |---|---|
