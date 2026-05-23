@@ -8,12 +8,32 @@ A structured 14-week course taking learners from zero statistics knowledge to fu
 
 ```
 statistics/
-├── problem_notebooks/  ← Problem-driven EDA→prediction notebooks (recommended start)
-├── notebooks/          ← Weekly concept reference notebooks
-├── concept_notebooks/  ← Focused notebooks for preprocessing and core ML ideas
-└── reference/          ← Curriculum guides, exercises, and legacy docs
-    └── legacy/         ← Original teaching materials (attempt1)
+├── problem_notebooks/   ← Problem-driven EDA→prediction notebooks (recommended start)
+├── learning_methods/    ← One folder per ML algorithm — how it learns and how to prep data
+├── notebooks/           ← Weekly concept reference notebooks
+├── concept_notebooks/   ← Focused notebooks for preprocessing and core ML ideas
+└── reference/           ← Curriculum guides, exercises, and legacy docs
+    └── legacy/          ← Original teaching materials (attempt1)
 ```
+
+---
+
+## learning_methods/ — One Algorithm per Folder
+
+Each folder teaches one learning method from scratch: what it is, how it learns, what the data needs,
+and how to read the rules it discovers — all using the same Titanic dataset so the focus stays on
+**what changes between methods**, not on understanding a new dataset.
+
+| Folder | Algorithm | Teaches |
+|---|---|---|
+| `01_linear_regression/` | Linear Regression | Predicting numbers; weights as rules; gradient descent; why scaling is essential |
+| `02_logistic_regression/` | Logistic Regression | Yes/no prediction; sigmoid; same scaling as linear |
+| `03_decision_tree/` | Decision Tree | Yes/no flowchart rules; Gini impurity; NO scaling needed; reading the tree |
+| `04_random_forest/` | Random Forest | Ensemble of trees; bootstrap sampling; variance reduction; feature importances |
+| `05_xgboost/` | XGBoost | Sequential boosting; fixing residuals; native missing-value handling; final comparison |
+
+**Progression**: Gradient methods (01–02) → Tree methods (03–05)
+The final notebook (05) shows all four classifiers side-by-side on the same test set.
 
 ---
 
