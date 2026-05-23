@@ -8,12 +8,14 @@ A structured 14-week course taking learners from zero statistics knowledge to fu
 
 ```
 statistics/
-├── problem_notebooks/   ← Problem-driven EDA→prediction notebooks (recommended start)
-├── learning_methods/    ← One folder per ML algorithm — how it learns and how to prep data
-├── notebooks/           ← Weekly concept reference notebooks
-├── concept_notebooks/   ← Focused notebooks for preprocessing and core ML ideas
-└── reference/           ← Curriculum guides, exercises, and legacy docs
-    └── legacy/          ← Original teaching materials (attempt1)
+├── problem_notebooks/    ← Problem-driven EDA→prediction notebooks (recommended start)
+├── learning_methods/     ← Classification algorithms — how each learns and what data needs
+├── regression_methods/   ← Regression algorithms — predicting continuous numbers
+├── clustering_methods/   ← Clustering algorithms — discovering groups without labels
+├── notebooks/            ← Weekly concept reference notebooks
+├── concept_notebooks/    ← Focused notebooks for preprocessing and core ML ideas
+└── reference/            ← Curriculum guides, exercises, and legacy docs
+    └── legacy/           ← Original teaching materials (attempt1)
 ```
 
 ---
@@ -34,6 +36,39 @@ and how to read the rules it discovers — all using the same Titanic dataset so
 
 **Progression**: Gradient methods (01–02) → Tree methods (03–05)
 The final notebook (05) shows all four classifiers side-by-side on the same test set.
+
+---
+
+## regression_methods/ — Predicting Continuous Numbers
+
+Each folder teaches one regression algorithm using the **California Housing** dataset (predict median house value).
+Gradient methods (01–03) require StandardScaler; tree methods (04–06) do not.
+
+| Folder | Algorithm | Teaches |
+|---|---|---|
+| `01_linear_regression/` | Linear Regression | Baseline; gradient descent; coefficient interpretation |
+| `02_ridge_regression/` | Ridge Regression | L2 penalty; shrinks all weights; prevents overfitting |
+| `03_lasso_regression/` | Lasso Regression | L1 penalty; drives weak weights to exactly 0; feature selection |
+| `04_decision_tree_regressor/` | Decision Tree Regressor | Threshold rules; predicts leaf mean; no scaling needed |
+| `05_random_forest_regressor/` | Random Forest Regressor | Averaged tree ensemble; variance reduction |
+| `06_xgboost_regressor/` | XGBoost Regressor | Sequential boosting; final comparison of all six methods |
+
+---
+
+## clustering_methods/ — Discovering Groups Without Labels
+
+Each folder teaches one clustering algorithm using the **Iris** dataset (group flowers by measurements, no species labels).
+All clustering algorithms need StandardScaler — they measure distance between points.
+
+| Folder | Algorithm | Teaches |
+|---|---|---|
+| `01_kmeans/` | K-Means | Centroid-based; elbow method; silhouette score; spherical clusters |
+| `02_dbscan/` | DBSCAN | Density-based; finds K automatically; handles noise and outliers |
+| `03_hierarchical/` | Hierarchical | Dendrogram; no K needed upfront; agglomerative (bottom-up) merging |
+| `04_gmm/` | GMM | Soft probabilistic assignments; elliptical clusters; full comparison |
+
+**Key concept**: clustering is **unsupervised** — no labels, no train/test split, algorithm discovers structure.
+The final notebook (04) shows all four methods side-by-side on the same dataset.
 
 ---
 
@@ -77,6 +112,7 @@ Short notebooks for teaching one idea deeply without wrapping it inside a full c
 | Notebook | Topics |
 |---|---|
 | `Feature_Transformation_and_Weight_Learning.ipynb` | Distributions, skewness, log transform, z-score standardization, and interpreting learned weights |
+| `Observation_Level_Feature_Contribution.ipynb` | For one observation: linear `weight × value` contributions, decision-tree path decisions, and comparing parameter-based vs rule-based explanations |
 
 ---
 
