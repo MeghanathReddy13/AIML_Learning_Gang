@@ -10,6 +10,7 @@ A structured 14-week course taking learners from zero statistics knowledge to fu
 statistics/
 ├── problem_notebooks/  ← Problem-driven EDA→prediction notebooks (recommended start)
 ├── notebooks/          ← Weekly concept reference notebooks
+├── concept_notebooks/  ← Focused notebooks for preprocessing and core ML ideas
 └── reference/          ← Curriculum guides, exercises, and legacy docs
     └── legacy/         ← Original teaching materials (attempt1)
 ```
@@ -46,6 +47,16 @@ Concept-focused notebooks organized by week. Use as a reference alongside the pr
 | `Week12_Neural_Networks.ipynb` | Activations, hidden layers, backpropagation |
 | `Week13_14_Practical_Mastery.ipynb` | Overfitting, regularization, model selection, capstone |
 | `ML_Learning_Journey.ipynb` | Full course overview in one notebook |
+
+---
+
+## concept_notebooks/ — Focused Teaching Modules
+
+Short notebooks for teaching one idea deeply without wrapping it inside a full case study.
+
+| Notebook | Topics |
+|---|---|
+| `Feature_Transformation_and_Weight_Learning.ipynb` | Distributions, skewness, log transform, z-score standardization, and interpreting learned weights |
 
 ---
 
