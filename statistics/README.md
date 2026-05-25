@@ -8,7 +8,8 @@ A structured 14-week course taking learners from zero statistics knowledge to fu
 
 ```
 statistics/
-├── problem_notebooks/    ← Problem-driven EDA→prediction notebooks (recommended start)
+├── foundations/          ← Start here: statistics, linear vs complex, choosing a model
+├── problem_notebooks/    ← Problem-driven EDA→prediction notebooks
 ├── learning_methods/     ← Classification algorithms — how each learns and what data needs
 ├── regression_methods/   ← Regression algorithms — predicting continuous numbers
 ├── clustering_methods/   ← Clustering algorithms — discovering groups without labels
@@ -17,6 +18,21 @@ statistics/
 └── reference/            ← Curriculum guides, exercises, and legacy docs
     └── legacy/           ← Original teaching materials (attempt1)
 ```
+
+---
+
+## foundations/ — Start Here (Recommended for New Students)
+
+Three short notebooks that answer the "why" before the "how".
+No prior ML knowledge needed — only curiosity.
+
+| Notebook | Question it answers |
+|---|---|
+| `01_Statistics_In_Learning.ipynb` | What is gradient descent actually computing? (It's statistics.) |
+| `02_Linear_vs_Complex_Relationships.ipynb` | How do I tell from a scatter plot whether I need a tree or a line? |
+| `03_Choosing_Your_Model.ipynb` | I have a new dataset — what model should I use? (Step-by-step checklist with Titanic) |
+
+**Key ideas covered**: correlation as a preview of learned weights, residual test, threshold effects, interaction effects, when linear fails.
 
 ---
 
