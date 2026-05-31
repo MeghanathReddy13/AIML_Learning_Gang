@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Literacy Bootcamp</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #181818;
+    --surface2: #222222;
+    --border: rgba(255,255,255,0.08);
+    --accent: #e8593c;
+    --accent2: #f2a623;
+    --teal: #1d9e75;
+    --blue: #378add;
+    --purple: #7f77dd;
+    --text: #f0ede8;
+    --muted: #888780;
+    --serif: 'DM Serif Display', serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .nav-brand { font-family: var(--serif); font-size: 15px; color: var(--accent); letter-spacing: 0.02em; }
+  .nav-controls { display: flex; align-items: center; gap: 12px; }
+  .nav-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    font-family: var(--sans); font-size: 12px; padding: 6px 14px; border-radius: 6px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .nav-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .nav-btn.primary:hover { background: #d14a2e; }
+  .slide-counter { font-size: 12px; color: var(--muted); min-width: 60px; text-align: center; }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    height: 2px; background: var(--border); flex-shrink: 0;
+    position: relative; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.4s ease;
+  }
+
+  /* DAY TABS */
+  .day-tabs {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border);
+    background: var(--surface); flex-shrink: 0;
+  }
+  .day-tab {
+    padding: 10px 24px; font-size: 12px; font-weight: 500; color: var(--muted);
+    border: none; background: transparent; cursor: pointer; letter-spacing: 0.06em;
+    text-transform: uppercase; border-bottom: 2px solid transparent;
+    transition: all 0.2s; font-family: var(--sans);
+  }
+  .day-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .day-tab:hover:not(.active) { color: var(--text); }
+
+  /* SLIDE CONTAINER */
+  .slide-area {
+    flex: 1; overflow: hidden; position: relative;
+  }
+  .slide {
+    position: absolute; inset: 0; display: none;
+    flex-direction: column; justify-content: center; align-items: center;
+    padding: 48px 64px; text-align: center; animation: fadeIn 0.35s ease;
+  }
+  .slide.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* SLIDE TYPES */
+  .slide-title {
+    font-family: var(--serif); font-size: clamp(36px, 5vw, 64px);
+    line-height: 1.1; margin-bottom: 16px; color: var(--text);
+  }
+  .slide-subtitle {
+    font-size: clamp(14px, 1.8vw, 18px); color: var(--muted);
+    max-width: 640px; line-height: 1.7; margin-bottom: 24px;
+  }
+  .accent-text { color: var(--accent); }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 4px 12px; border-radius: 4px;
+    background: rgba(232,89,60,0.15); color: var(--accent); margin-bottom: 20px;
+  }
+
+  /* GRID CARDS */
+  .cards-grid {
+    display: grid; gap: 16px; width: 100%; max-width: 900px; margin-top: 28px;
+  }
+  .cards-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .cards-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .cards-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; text-align: left;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: rgba(232,89,60,0.3); }
+  .card-icon { font-size: 22px; margin-bottom: 10px; }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .card-body { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .card.accent-card { border-color: rgba(232,89,60,0.4); background: rgba(232,89,60,0.06); }
+  .card.teal-card { border-color: rgba(29,158,117,0.4); background: rgba(29,158,117,0.06); }
+  .card.blue-card { border-color: rgba(55,138,221,0.4); background: rgba(55,138,221,0.06); }
+  .card.purple-card { border-color: rgba(127,119,221,0.4); background: rgba(127,119,221,0.06); }
+
+  /* QUOTE SLIDES */
+  .quote-wrap {
+    max-width: 700px; border-left: 3px solid var(--accent);
+    padding-left: 28px; text-align: left; margin-top: 20px;
+  }
+  .quote-text {
+    font-family: var(--serif); font-size: clamp(20px, 2.8vw, 30px);
+    line-height: 1.4; color: var(--text); margin-bottom: 14px;
+    font-style: italic;
+  }
+  .quote-author { font-size: 13px; color: var(--muted); }
+
+  /* BIG STAT */
+  .big-stat { font-family: var(--serif); font-size: clamp(56px, 9vw, 110px); color: var(--accent); line-height: 1; margin: 16px 0 8px; }
+  .stat-label { font-size: 14px; color: var(--muted); max-width: 500px; }
+
+  /* LIST SLIDES */
+  .concept-list { list-style: none; max-width: 680px; width: 100%; margin-top: 24px; text-align: left; }
+  .concept-list li {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+    font-size: 14px; line-height: 1.6;
+  }
+  .concept-list li:last-child { border-bottom: none; }
+  .li-num {
+    min-width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(232,89,60,0.15); color: var(--accent);
+    font-size: 12px; font-weight: 600; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0; margin-top: 1px;
+  }
+  .li-title { font-weight: 600; color: var(--text); }
+  .li-desc { color: var(--muted); margin-top: 2px; font-size: 13px; }
+
+  /* INTERACTIVE: DATA TYPES */
+  .type-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    max-width: 760px; width: 100%; margin-top: 24px;
+  }
+  .type-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px; text-align: left; cursor: pointer;
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .type-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .type-badge {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;
+  }
+  .qual-nom .type-badge { background: rgba(127,119,221,0.2); color: var(--purple); }
+  .qual-ord .type-badge { background: rgba(55,138,221,0.2); color: var(--blue); }
+  .quant-dis .type-badge { background: rgba(29,158,117,0.2); color: var(--teal); }
+  .quant-con .type-badge { background: rgba(242,166,35,0.2); color: var(--accent2); }
+  .type-card .type-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .type-card .type-example { font-size: 12px; color: var(--muted); }
+  .type-card .type-rule { font-size: 12px; color: var(--text); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+
+  /* INTERACTIVE: DISTRIBUTION */
+  .dist-container { display: flex; gap: 24px; max-width: 860px; width: 100%; margin-top: 24px; align-items: flex-start; }
+  .dist-controls { min-width: 200px; text-align: left; }
+  .ctrl-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.06em; }
+  .ctrl-row { margin-bottom: 16px; }
+  input[type=range] {
+    width: 100%; accent-color: var(--accent); cursor: pointer;
+  }
+  .dist-canvas-wrap { flex: 1; position: relative; }
+  canvas { border-radius: 8px; background: var(--surface); border: 1px solid var(--border); }
+  .dist-stats { display: flex; gap: 12px; margin-top: 10px; }
+  .ds { background: var(--surface2); border-radius: 6px; padding: 8px 12px; flex: 1; text-align: center; }
+  .ds-label { font-size: 10px; color: var(--muted); }
+  .ds-val { font-size: 15px; font-weight: 600; color: var(--accent); }
+
+  /* INTERACTIVE: CORRELATION */
+  .corr-wrap { display: flex; gap: 24px; max-width: 860px; width: 100%; margin-top: 20px; }
+  .corr-canvas-wrap { flex: 1; }
+  .corr-info { min-width: 180px; text-align: left; display: flex; flex-direction: column; gap: 10px; }
+  .corr-meter { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .corr-val-big { font-family: var(--serif); font-size: 36px; color: var(--accent); }
+  .corr-desc { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .corr-type-btns { display: flex; flex-direction: column; gap: 8px; }
+  .corr-btn {
+    background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+    padding: 8px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;
+    font-family: var(--sans); text-align: left; transition: all 0.2s;
+  }
+  .corr-btn:hover, .corr-btn.active { border-color: var(--accent); color: var(--text); background: rgba(232,89,60,0.1); }
+
+  /* INTERACTIVE: CHARTS QUIZ */
+  .chart-quiz { max-width: 800px; width: 100%; margin-top: 20px; }
+  .quiz-scenario {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; margin-bottom: 14px;
+  }
+  .quiz-q { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+  .quiz-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .quiz-opt {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+    padding: 7px 14px; border-radius: 20px; font-size: 12px; cursor: pointer;
+    font-family: var(--sans); transition: all 0.2s;
+  }
+  .quiz-opt:hover { border-color: var(--blue); color: var(--text); }
+  .quiz-opt.correct { border-color: var(--teal); background: rgba(29,158,117,0.15); color: var(--teal); }
+  .quiz-opt.wrong { border-color: #e24b4a; background: rgba(226,75,74,0.1); color: #e24b4a; }
+  .quiz-fb { font-size: 12px; color: var(--muted); margin-top: 10px; min-height: 18px; line-height: 1.5; }
+
+  /* GESTALT */
+  .gestalt-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; max-width: 820px; width: 100%; margin-top: 20px; }
+  .g-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; text-align: center; }
+  .g-demo { height: 80px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; position: relative; }
+  .g-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .g-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .dot.blue { background: var(--blue); }
+  .dot.muted { background: var(--muted); }
+
+  /* STORYTELLING */
+  .story-steps { display: flex; gap: 0; max-width: 800px; width: 100%; margin-top: 28px; }
+  .story-step { flex: 1; padding: 20px 16px; position: relative; }
+  .story-step:not(:last-child)::after {
+    content: '→'; position: absolute; right: -10px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: 18px; z-index: 1;
+  }
+  .step-num-big { font-family: var(--serif); font-size: 42px; color: rgba(232,89,60,0.2); line-height: 1; margin-bottom: 8px; }
+  .step-name { font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .step-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+  /* THUMBNAIL NAV */
+  .thumb-nav {
+    display: flex; gap: 6px; padding: 10px 28px; overflow-x: auto;
+    border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0;
+    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  }
+  .thumb {
+    min-width: 52px; height: 32px; border-radius: 4px; border: 1px solid var(--border);
+    background: var(--surface2); cursor: pointer; display: flex; align-items: center;
+    justify-content: center; font-size: 10px; color: var(--muted); flex-shrink: 0;
+    transition: all 0.15s; font-family: var(--sans);
+  }
+  .thumb.active { border-color: var(--accent); color: var(--accent); background: rgba(232,89,60,0.1); }
+  .thumb:hover:not(.active) { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+  /* KEYBOARD HINT */
+  .kb-hint { position: fixed; bottom: 60px; right: 20px; font-size: 11px; color: var(--muted); display: flex; gap: 8px; z-index: 100; }
+  .kb { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 3px 7px; }
+
+  /* AXIS DEBATE */
+  .debate-wrap { display: flex; gap: 20px; max-width: 820px; width: 100%; margin-top: 20px; }
+  .debate-side { flex: 1; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); padding: 20px; text-align: left; }
+  .debate-side.left { border-top: 3px solid var(--accent); }
+  .debate-side.right { border-top: 3px solid var(--blue); }
+  .debate-who { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .debate-stance { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .debate-body { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+  /* CLEANING STEPS */
+  .clean-steps { display: flex; flex-direction: column; gap: 10px; max-width: 700px; width: 100%; margin-top: 20px; }
+  .clean-step {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .clean-step:hover { border-color: rgba(232,89,60,0.3); }
+  .clean-step.done { border-color: rgba(29,158,117,0.4); background: rgba(29,158,117,0.05); }
+  .step-check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: all 0.2s; }
+  .clean-step.done .step-check { background: var(--teal); border-color: var(--teal); color: #fff; }
+  .clean-step-title { font-size: 13px; font-weight: 600; }
+  .clean-step-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .clean-step.done .clean-step-title { color: var(--teal); }
+
+  /* COVER SLIDE specific */
+  .cover-accent {
+    width: 120px; height: 4px; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px; margin: 20px auto;
+  }
+  .cover-pills { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+  .pill {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 6px 16px; font-size: 12px; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-brand">Data Literacy Bootcamp</span>
+  <div class="nav-controls">
+    <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+    <span class="slide-counter" id="counter">1 / 20</span>
+    <button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+  </div>
+</nav>
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+<!-- DAY TABS -->
+<div class="day-tabs">
+  <button class="day-tab active" id="tab-d1" onclick="goToDay(1)">Day 1 — Foundations</button>
+  <button class="day-tab" id="tab-d2" onclick="goToDay(2)">Day 2 — Viz & Storytelling</button>
+</div>
+
+<!-- SLIDES -->
+<div class="slide-area">
+
+  <!-- ═══ DAY 1 SLIDES ═══ -->
+
+  <!-- S1: Cover -->
+  <div class="slide active" data-day="1">
+    <div class="tag">Two-day bootcamp</div>
+    <h1 class="slide-title">Data Literacy<br><span class="accent-text">Bootcamp</span></h1>
+    <div class="cover-accent"></div>
+    <p class="slide-subtitle">How to inspire business decisions with data</p>
+    <div class="cover-pills">
+      <span class="pill">Foundations</span>
+      <span class="pill">Statistics</span>
+      <span class="pill">Visualization</span>
+      <span class="pill">Storytelling</span>
+      <span class="pill">Data Cleaning</span>
+    </div>
+  </div>
+
+  <!-- S2: Three Lenses -->
+  <div class="slide" data-day="1">
+    <div class="tag">The data landscape</div>
+    <h2 class="slide-title">Three lenses on data</h2>
+    <div class="cards-grid cols-3" style="margin-top:28px;max-width:820px;">
+      <div class="card accent-card">
+        <div class="card-icon">🏭</div>
+        <div class="card-title">Producer</div>
+        <div class="card-body">We generate data constantly — wearables, social media, video, messages. 95,000 years to consume one day of global data output.</div>
+      </div>
+      <div class="card blue-card">
+        <div class="card-icon">👁</div>
+        <div class="card-title">Consumer</div>
+        <div class="card-body">48% of US adults get news from social media. Misinformation shapes perceptions and societal outcomes. Critical reading of data is essential.</div>
+      </div>
+      <div class="card teal-card">
+        <div class="card-icon">🔬</div>
+        <div class="card-title">Analyzer</div>
+        <div class="card-body">Data scientists earn $112K median. Job growth +36% vs +4% across all occupations. The ability to communicate data is the new literacy.</div>
+      </div>
+    </div>
+    <p class="slide-subtitle" style="margin-top:20px;font-size:13px;">"If literacy is defined as the ability to read and write, data literacy can be defined as the ability to understand and communicate data." — Brent Dykes</p>
+  </div>
+
+  <!-- S3: Data Basics -->
+  <div class="slide" data-day="1">
+    <div class="tag">Data basics</div>
+    <h2 class="slide-title">Tables, rows & columns</h2>
+    <div class="cards-grid cols-3" style="margin-top:24px;max-width:820px;">
+      <div class="card">
+        <div class="card-title">Row = Observation</div>
+        <div class="card-body">One record of data — a single Taylor Swift song, one customer transaction, one survey response.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Column = Variable</div>
+        <div class="card-body">A measured attribute — song name, danceability score, album year. Also called a dimension or measure.</div>
+      </div>
+      <div class="card accent-card">
+        <div class="card-title">Shape = (rows, cols)</div>
+        <div class="card-body">The Taylor Swift Spotify dataset is shape (73, 14) — 73 songs × 14 attributes. Always check shape first.</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;max-width:580px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;">Key terminology</div>
+      <div style="display:flex;gap:20px;font-size:12px;flex-wrap:wrap;">
+        <span><b style="color:var(--accent)">Dimension</b> — qualitative value (name, date, region)</span>
+        <span><b style="color:var(--blue)">Measure</b> — numeric, quantitative value</span>
+        <span><b style="color:var(--teal)">Metadata</b> — data about data</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- S4: Data Types interactive -->
+  <div class="slide" data-day="1">
+    <div class="tag">Data types</div>
+    <h2 class="slide-title" style="font-size:clamp(28px,4vw,48px);">Qualitative vs Quantitative</h2>
+    <div class="type-grid">
+      <div class="type-card qual-nom" onclick="flipCard(this)">
+        <div class="type-badge">Qualitative — Nominal</div>
+        <div class="type-title">No natural order</div>
+        <div class="type-example">Examples: album name, genre, country, eye colour</div>
+        <div class="type-rule">Order doesn't matter — "Pop" is not greater than "Rock"</div>
+      </div>
+      <div class="type-card qual-ord" onclick="flipCard(this)">
+        <div class="type-badge">Qualitative — Ordinal</div>
+        <div class="type-title">Has meaningful order</div>
+        <div class="type-example">Examples: star rating, satisfaction level, grade (A/B/C)</div>
+        <div class="type-rule">Order matters — "Very satisfied" > "Satisfied" but gap is undefined</div>
+      </div>
+      <div class="type-card quant-dis" onclick="flipCard(this)">
+        <div class="type-badge">Quantitative — Discrete</div>
+        <div class="type-title">Countable whole numbers</div>
+        <div class="type-example">Examples: number of streams, tracks on album, listens today</div>
+        <div class="type-rule">You can count it — no fractions (can't have 2.7 songs)</div>
+      </div>
+      <div class="type-card quant-con" onclick="flipCard(this)">
+        <div class="type-badge">Quantitative — Continuous</div>
+        <div class="type-title">Measurable, infinite values</div>
+        <div class="type-example">Examples: danceability (0.0–1.0), tempo, loudness, duration</div>
+        <div class="type-rule">You measure it — any value in a range is possible</div>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:12px;">Hover each card to explore</p>
+  </div>
+
+  <!-- S5: Descriptive Stats -->
+  <div class="slide" data-day="1">
+    <div class="tag">Descriptive statistics</div>
+    <h2 class="slide-title" style="font-size:clamp(28px,4vw,48px);">Central tendency & dispersion</h2>
+    <ul class="concept-list">
+      <li>
+        <div class="li-num">μ</div>
+        <div><div class="li-title">Mean — the average</div><div class="li-desc">Sum all values ÷ count. Sensitive to outliers — one $1M salary pulls the mean up for a team earning $50K.</div></div>
+      </li>
+      <li>
+        <div class="li-num">M</div>
+        <div><div class="li-title">Median — the middle value</div><div class="li-desc">Sort data, find the midpoint. Robust to outliers — use for skewed distributions like income, house prices.</div></div>
+      </li>
+      <li>
+        <div class="li-num">σ²</div>
+        <div><div class="li-title">Variance — average squared deviation from mean</div><div class="li-desc">Σ(x − μ)² ÷ N. Tells you how spread out data is. Always non-negative.</div></div>
+      </li>
+      <li>
+        <div class="li-num">σ</div>
+        <div><div class="li-title">Standard deviation — square root of variance</div><div class="li-desc">Back in original units. 68% of data falls within 1σ of the mean in a normal distribution.</div></div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- S6: Distribution interactive -->
+  <div class="slide" data-day="1">
+    <div class="tag">Distributions</div>
+    <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,42px);">Normal distribution & skew</h2>
+    <div class="dist-container">
+      <div class="dist-controls">
+        <div class="ctrl-row">
+          <span class="ctrl-label">Skew</span>
+          <input type="range" id="skewSlider" min="-3" max="3" value="0" step="0.1" oninput="drawDist()">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;"><span>Left skew</span><span>Normal</span><span>Right skew</span></div>
+        </div>
+        <div class="ctrl-row">
+          <span class="ctrl-label">Spread (σ)</span>
+          <input type="range" id="sdSlider" min="0.5" max="3" value="1" step="0.1" oninput="drawDist()">
+        </div>
+        <div class="dist-stats">
+          <div class="ds"><div class="ds-label">Mean</div><div class="ds-val" id="dMean">50</div></div>
+          <div class="ds"><div class="ds-label">Median</div><div class="ds-val" id="dMedian">50</div></div>
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:var(--muted);line-height:1.7;">
+          <b style="color:var(--text);">68-95-99.7 rule:</b><br>
+          68% within 1σ<br>
+          95% within 2σ<br>
+          99.7% within 3σ
+        </div>
+      </div>
+      <div class="dist-canvas-wrap">
+        <canvas id="distCanvas" width="480" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- S7: Correlation interactive -->
+  <div class="slide" data-day="1">
+    <div class="tag">Bivariate relationships</div>
+    <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,42px);">Correlation — direction & magnitude</h2>
+    <div class="corr-wrap">
+      <div class="corr-canvas-wrap">
+        <canvas id="corrCanvas" width="460" height="260"></canvas>
+      </div>
+      <div class="corr-info">
+        <div class="corr-meter">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Correlation (r)</div>
+          <div class="corr-val-big" id="corrVal">0.85</div>
+          <div class="corr-desc" id="corrDesc">Strong positive relationship — as X increases, Y increases.</div>
+        </div>
+        <div class="corr-type-btns">
+          <button class="corr-btn active" onclick="setCorrType('strong-pos',this)">Strong positive</button>
+          <button class="corr-btn" onclick="setCorrType('weak-pos',this)">Weak positive</button>
+          <button class="corr-btn" onclick="setCorrType('none',this)">No correlation</button>
+          <button class="corr-btn" onclick="setCorrType('negative',this)">Negative</button>
+          <button class="corr-btn" onclick="setCorrType('spurious',this)">⚠ Spurious</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.6;padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">
+          <b style="color:var(--accent)">Correlation ≠ Causation.</b> Ice cream sales and drowning both rise in summer — but ice cream doesn't cause drowning. A lurking variable (temperature) drives both.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S8: Data Cleaning -->
+  <div class="slide" data-day="1">
+    <div class="tag">Data preparation</div>
+    <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,42px);">Data cleaning — always first</h2>
+    <p class="slide-subtitle" style="margin-bottom:0;font-size:13px;">GIGO: Garbage In, Garbage Out. The quality of your analysis = the quality of your data.</p>
+    <div class="clean-steps" id="cleanSteps">
+      <div class="clean-step" onclick="toggleClean(this)">
+        <div class="step-check">1</div>
+        <div><div class="clean-step-title">Remove irrelevant data</div><div class="clean-step-desc">Drop columns outside scope — e.g. "Favourite Sports Team" in a customer satisfaction study</div></div>
+      </div>
+      <div class="clean-step" onclick="toggleClean(this)">
+        <div class="step-check">2</div>
+        <div><div class="clean-step-title">Remove duplicates</div><div class="clean-step-desc">Identical customer entries, duplicate invoices, repeated social media logs</div></div>
+      </div>
+      <div class="clean-step" onclick="toggleClean(this)">
+        <div class="step-check">3</div>
+        <div><div class="clean-step-title">Fix structural errors</div><div class="clean-step-desc">"NY" vs "New York", height in inches AND cm, misaligned columns from import</div></div>
+      </div>
+      <div class="clean-step" onclick="toggleClean(this)">
+        <div class="step-check">4</div>
+        <div><div class="clean-step-title">Handle outliers</div><div class="clean-step-desc">$1M salary in a $50K dataset. Age of 150. Temperature spike of 200°F. Decide: remove or investigate?</div></div>
+      </div>
+      <div class="clean-step" onclick="toggleClean(this)">
+        <div class="step-check">5</div>
+        <div><div class="clean-step-title">Type conversion</div><div class="clean-step-desc">"100" stored as text, date formats inconsistent, Yes/No vs True/False booleans</div></div>
+      </div>
+      <div class="clean-step" onclick="toggleClean(this)">
+        <div class="step-check">6</div>
+        <div><div class="clean-step-title">Handle missing values</div><div class="clean-step-desc">Blank cells, NULL/NaN/N/A fields, skipped survey responses — impute or drop?</div></div>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px;">Click each step to mark complete</p>
+  </div>
+
+  <!-- S9: Day 1 Recap -->
+  <div class="slide" data-day="1">
+    <div class="tag">Day 1 recap</div>
+    <h2 class="slide-title">What we covered today</h2>
+    <div class="cards-grid cols-2" style="margin-top:24px;max-width:720px;">
+      <div class="card accent-card"><div class="card-title">Data landscape</div><div class="card-body">Producer → Consumer → Analyzer. 95K years of daily data. Video = 50%+ of global traffic.</div></div>
+      <div class="card blue-card"><div class="card-title">Data types</div><div class="card-body">Qualitative (nominal/ordinal) vs Quantitative (discrete/continuous). Shape = (rows, cols).</div></div>
+      <div class="card teal-card"><div class="card-title">Descriptive statistics</div><div class="card-body">Mean, median, mode. Variance, standard deviation. Normal distribution & 68-95-99.7 rule.</div></div>
+      <div class="card purple-card"><div class="card-title">Bivariate relationships</div><div class="card-body">Correlation: direction + magnitude. Correlation ≠ causation. Spurious correlations exist.</div></div>
+      <div class="card"><div class="card-title">Data cleaning (6 steps)</div><div class="card-body">Remove irrelevant, duplicates, structural errors, handle outliers, type conversion, missing values.</div></div>
+      <div class="card"><div class="card-title">EDA on Spotify data</div><div class="card-body">Shape (73, 14). Strings + numerics. Taylor Swift as the running dataset thread.</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ DAY 2 SLIDES ═══ -->
+
+  <!-- S10: Day 2 Cover -->
+  <div class="slide" data-day="2">
+    <div class="tag">Day 2</div>
+    <h1 class="slide-title">Visualization &<br><span class="accent-text">Storytelling</span></h1>
+    <div class="cover-accent"></div>
+    <p class="slide-subtitle">Chart types · Gestalt principles · Color theory · Exploratory vs explanatory · Data stories</p>
+    <div class="cover-pills">
+      <span class="pill">Bar charts</span>
+      <span class="pill">Histograms</span>
+      <span class="pill">Scatter plots</span>
+      <span class="pill">Gestalt</span>
+      <span class="pill">Storytelling</span>
+    </div>
+  </div>
+
+  <!-- S11: Chart Types Quiz -->
+  <div class="slide" data-day="2">
+    <div class="tag">Visualization — the how</div>
+    <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">Right chart for the right message</h2>
+    <div class="chart-quiz">
+      <div class="quiz-scenario">
+        <div class="quiz-q">You want to show how monthly revenue changed over a year.</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="checkQuiz(this,'wrong')">Bar chart</button>
+          <button class="quiz-opt" onclick="checkQuiz(this,'correct')">Line chart</button>
+          <button class="quiz-opt" onclick="checkQuiz(this,'wrong')">Pie chart</button>
+          <button class="quiz-opt" onclick="checkQuiz(this,'wrong')">Histogram</button>
+        </div>
+        <div class="quiz-fb" id="qfb1"></div>
+      </div>
+      <div class="quiz-scenario">
+        <div class="quiz-q">You want to compare sales across 5 product categories.</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="checkQuiz(this,'correct','qfb2')">Bar chart</button>
+          <button class="quiz-opt" onclick="checkQuiz(this,'wrong','qfb2')">Line chart</button>
+          <button class="quiz-opt" onclick="checkQuiz(this,'wrong','qfb2')">Histogram</button>
+          <button class="quiz-opt" onclick="checkQuiz(this,'wrong','qfb2')">Scatter plot</button>
+        </div>
+        <div class="quiz-fb" id="qfb2"></div>
+      </div>
+      <div class="quiz-scenario">
+        <div class="quiz-q">You want to show the distribution of ages in a dataset (continuous).</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="checkQuiz(this,'wrong','qfb3')">Bar chart</button>
+          <button class="quiz-opt" onclick="checkQuiz(this,'wrong','qfb3')">Pie chart</button>
+          <button class="quiz-opt" onclick="checkQuiz(this,'correct','qfb3')">Histogram</button>
+          <button class="quiz-opt" onclick="checkQuiz(this,'wrong','qfb3')">Line chart</button>
+        </div>
+        <div class="quiz-fb" id="qfb3"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S12: Bar vs Histogram -->
+  <div class="slide" data-day="2">
+    <div class="tag">Common confusion</div>
+    <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">Bar chart vs histogram</h2>
+    <div style="display:flex;gap:20px;max-width:820px;width:100%;margin-top:20px;">
+      <div style="flex:1;background:var(--surface);border:1px solid rgba(232,89,60,0.4);border-radius:12px;padding:20px;text-align:left;">
+        <div style="font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Bar chart</div>
+        <canvas id="barDemo" width="320" height="160"></canvas>
+        <div style="margin-top:12px;font-size:12px;color:var(--muted);line-height:1.7;">
+          <b style="color:var(--text)">Discrete categories.</b> Gaps between bars are intentional — they signal the X-axis is categorical, not continuous. Use for: comparing regions, products, groups.
+        </div>
+      </div>
+      <div style="flex:1;background:var(--surface);border:1px solid rgba(55,138,221,0.4);border-radius:12px;padding:20px;text-align:left;">
+        <div style="font-size:11px;color:var(--blue);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Histogram</div>
+        <canvas id="histDemo" width="320" height="160"></canvas>
+        <div style="margin-top:12px;font-size:12px;color:var(--muted);line-height:1.7;">
+          <b style="color:var(--text)">Continuous data.</b> Bars touch — there's no gap because the data is one continuous range divided into bins. Use for: age distribution, test scores, danceability.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S13: Gestalt -->
+  <div class="slide" data-day="2">
+    <div class="tag">Visualization best practices</div>
+    <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">Gestalt principles</h2>
+    <div class="gestalt-grid">
+      <div class="g-card">
+        <div class="g-demo">
+          <div style="border:2px solid var(--accent);border-radius:8px;padding:10px;display:flex;gap:8px;">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          </div>
+        </div>
+        <div class="g-title">Enclosure</div>
+        <div class="g-desc">A border or boundary groups elements — they belong together because they share a container.</div>
+      </div>
+      <div class="g-card">
+        <div class="g-demo" style="gap:4px;display:flex;flex-direction:column;align-items:center;">
+          <div style="display:flex;gap:4px;"><div class="dot"></div><div class="dot"></div><div class="dot muted"></div><div class="dot muted"></div></div>
+          <div style="display:flex;gap:4px;"><div class="dot"></div><div class="dot"></div><div class="dot muted"></div><div class="dot muted"></div></div>
+        </div>
+        <div class="g-title">Similarity</div>
+        <div class="g-desc">Objects that look alike are perceived as a group — color, shape, or size communicates category.</div>
+      </div>
+      <div class="g-card">
+        <div class="g-demo">
+          <div style="display:flex;gap:2px;"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+          <div style="margin:0 14px;"></div>
+          <div style="display:flex;gap:14px;"><div class="dot muted"></div><div class="dot muted"></div></div>
+        </div>
+        <div class="g-title">Proximity</div>
+        <div class="g-desc">Elements close together are seen as related. Distance implies separation and difference.</div>
+      </div>
+      <div class="g-card">
+        <div class="g-demo">
+          <svg width="100" height="60"><line x1="10" y1="30" x2="90" y2="30" stroke="var(--accent)" stroke-width="2"/><circle cx="30" cy="30" r="5" fill="var(--accent)"/><circle cx="55" cy="30" r="5" fill="var(--accent)"/><circle cx="80" cy="30" r="5" fill="var(--accent)"/></svg>
+        </div>
+        <div class="g-title">Continuity</div>
+        <div class="g-desc">Eyes follow lines and curves — points on a line feel connected even without explicit connection.</div>
+      </div>
+      <div class="g-card">
+        <div class="g-demo">
+          <svg width="100" height="60"><circle cx="35" cy="30" r="20" fill="none" stroke="var(--blue)" stroke-width="2"/><circle cx="65" cy="30" r="20" fill="none" stroke="var(--teal)" stroke-width="2"/><ellipse cx="50" cy="30" rx="8" ry="14" fill="rgba(242,166,35,0.2)" stroke="var(--accent2)" stroke-width="1"/></svg>
+        </div>
+        <div class="g-title">Figure / Ground</div>
+        <div class="g-desc">We distinguish objects from their background — contrast creates hierarchy and draws attention.</div>
+      </div>
+      <div class="g-card">
+        <div class="g-demo">
+          <svg width="100" height="60"><circle cx="25" cy="30" r="8" fill="var(--muted)"/><circle cx="50" cy="30" r="14" fill="var(--accent)"/><circle cx="80" cy="30" r="8" fill="var(--muted)"/></svg>
+        </div>
+        <div class="g-title">Common fate</div>
+        <div class="g-desc">Elements moving or pointing in the same direction are perceived as a group or trend.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S14: Axis at zero debate -->
+  <div class="slide" data-day="2">
+    <div class="tag">Best practices — axis debate</div>
+    <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">Start axis at zero?</h2>
+    <div class="debate-wrap">
+      <div class="debate-side left">
+        <div class="debate-who">Darrell Huff — "How to Lie with Statistics"</div>
+        <div class="debate-stance" style="color:var(--accent);">Always start at zero.</div>
+        <div class="debate-body">Starting anywhere but zero is a means of being deceptive. A truncated axis exaggerates changes, making small differences appear dramatic and misleading readers about scale.</div>
+      </div>
+      <div style="display:flex;align-items:center;font-size:20px;color:var(--muted);padding:0 8px;">vs</div>
+      <div class="debate-side right">
+        <div class="debate-who">Edward Tufte — "The Visual Display of Quantitative Information"</div>
+        <div class="debate-stance" style="color:var(--blue);">Show the data, not empty space.</div>
+        <div class="debate-body">"Context does not come from empty vertical space reaching down to zero." Show more data horizontally for context. For time-series, use a baseline that shows the data — not the zero point.</div>
+      </div>
+    </div>
+    <div style="margin-top:18px;background:rgba(242,166,35,0.1);border:1px solid rgba(242,166,35,0.3);border-radius:10px;padding:14px;max-width:700px;font-size:12px;color:var(--muted);text-align:left;">
+      <b style="color:var(--accent2);">Practical rule:</b> Start at zero for bar charts (comparing absolute quantities). Consider truncating for time-series line charts showing small changes in already-large numbers — but label the axis clearly.
+    </div>
+  </div>
+
+  <!-- S15: Color Theory -->
+  <div class="slide" data-day="2">
+    <div class="tag">Visualization — color</div>
+    <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">Color encodes meaning</h2>
+    <div class="cards-grid cols-2" style="max-width:720px;margin-top:20px;">
+      <div class="card">
+        <div class="card-title" style="color:var(--accent);">Sequential</div>
+        <div style="display:flex;gap:4px;margin:8px 0;">
+          <div style="flex:1;height:20px;border-radius:3px;background:#faeeda;"></div>
+          <div style="flex:1;height:20px;border-radius:3px;background:#fac775;"></div>
+          <div style="flex:1;height:20px;border-radius:3px;background:#ef9f27;"></div>
+          <div style="flex:1;height:20px;border-radius:3px;background:#ba7517;"></div>
+          <div style="flex:1;height:20px;border-radius:3px;background:#412402;"></div>
+        </div>
+        <div class="card-body">One hue, varying intensity. Use for ordered data — population density, temperature, revenue. Light = low, dark = high.</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--blue);">Diverging</div>
+        <div style="display:flex;gap:4px;margin:8px 0;">
+          <div style="flex:1;height:20px;border-radius:3px;background:#185fa5;"></div>
+          <div style="flex:1;height:20px;border-radius:3px;background:#85b7eb;"></div>
+          <div style="flex:1;height:20px;border-radius:3px;background:#f0ede8;"></div>
+          <div style="flex:1;height:20px;border-radius:3px;background:#f0997b;"></div>
+          <div style="flex:1;height:20px;border-radius:3px;background:#993c1d;"></div>
+        </div>
+        <div class="card-body">Two hues from a neutral midpoint. Use when data has a meaningful center — profit/loss, above/below average, positive/negative sentiment.</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--teal);">Categorical</div>
+        <div style="display:flex;gap:4px;margin:8px 0;">
+          <div style="flex:1;height:20px;border-radius:3px;background:var(--accent);"></div>
+          <div style="flex:1;height:20px;border-radius:3px;background:var(--blue);"></div>
+          <div style="flex:1;height:20px;border-radius:3px;background:var(--teal);"></div>
+          <div style="flex:1;height:20px;border-radius:3px;background:var(--purple);"></div>
+          <div style="flex:1;height:20px;border-radius:3px;background:var(--accent2);"></div>
+        </div>
+        <div class="card-body">Distinct hues, equal visual weight. Use for unordered groups — regions, product lines, team names. Max 6–7 colors.</div>
+      </div>
+      <div class="card accent-card">
+        <div class="card-title">Golden rule</div>
+        <div class="card-body">Color should encode meaning, not decoration. One accent color draws attention. Never rely on color alone — add labels, patterns, or shapes for accessibility.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S16: Exploratory vs Explanatory -->
+  <div class="slide" data-day="2">
+    <div class="tag">Two modes of visualization</div>
+    <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">Exploratory vs Explanatory</h2>
+    <div style="display:flex;gap:24px;max-width:800px;width:100%;margin-top:24px;">
+      <div style="flex:1;background:var(--surface);border:1px solid rgba(127,119,221,0.4);border-radius:12px;padding:24px;text-align:left;">
+        <div style="font-size:10px;color:var(--purple);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">Exploratory</div>
+        <div style="font-size:18px;font-weight:600;margin-bottom:10px;">Visualizations for <em>me</em></div>
+        <ul style="font-size:12px;color:var(--muted);line-height:2;list-style:none;">
+          <li>→ Fast and messy is fine</li>
+          <li>→ No audience except yourself</li>
+          <li>→ Purpose: find patterns, outliers, hypotheses</li>
+          <li>→ Tools: EDA, scatter matrices, quick histograms</li>
+          <li>→ Can be complex and dense</li>
+        </ul>
+      </div>
+      <div style="flex:1;background:var(--surface);border:1px solid rgba(29,158,117,0.4);border-radius:12px;padding:24px;text-align:left;">
+        <div style="font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">Explanatory</div>
+        <div style="font-size:18px;font-weight:600;margin-bottom:10px;">Visualizations for <em>them</em></div>
+        <ul style="font-size:12px;color:var(--muted);line-height:2;list-style:none;">
+          <li>→ Polished and clear is essential</li>
+          <li>→ Designed for a specific audience</li>
+          <li>→ Purpose: communicate one clear insight</li>
+          <li>→ Tools: dashboards, presentations, reports</li>
+          <li>→ Remove everything that doesn't serve the story</li>
+        </ul>
+      </div>
+    </div>
+    <div style="margin-top:16px;font-size:12px;color:var(--muted);">Visualizations are the <b style="color:var(--text)">vehicles</b> of your story — but the chart should complement the narrative, not overwhelm it.</div>
+  </div>
+
+  <!-- S17: Declutter checklist -->
+  <div class="slide" data-day="2">
+    <div class="tag">Best practices</div>
+    <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">Declutter checklist</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:780px;width:100%;margin-top:20px;">
+      <div class="card">
+        <div class="card-title" style="color:var(--accent);">❌ Avoid these</div>
+        <ul style="font-size:12px;color:var(--muted);line-height:2;margin-top:8px;list-style:none;">
+          <li>Diagonal text labels (rotate instead)</li>
+          <li>3D chart effects — distort perception</li>
+          <li>More than 6-7 colors in one chart</li>
+          <li>Gridlines darker than the data</li>
+          <li>Pie charts with more than 4-5 slices</li>
+          <li>Unlabelled axes or missing units</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--teal);">✓ Best practices</div>
+        <ul style="font-size:12px;color:var(--muted);line-height:2;margin-top:8px;list-style:none;">
+          <li>Left-align text for readability</li>
+          <li>Direct labels instead of a legend</li>
+          <li>Consistent color across related charts</li>
+          <li>Highlight only the key insight</li>
+          <li>One chart = one message</li>
+          <li>Always cite your data source</li>
+        </ul>
+      </div>
+      <div class="card teal-card" style="grid-column:span 2;">
+        <div class="card-title">Reduce cognitive load</div>
+        <div class="card-body">Every element a reader has to decode is a tax on their attention. Remove anything that doesn't contribute to the central message. The best chart is the simplest one that tells the story.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S18: Storytelling framework -->
+  <div class="slide" data-day="2">
+    <div class="tag">Storytelling with data</div>
+    <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">The three-part data story</h2>
+    <div class="story-steps">
+      <div class="story-step" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;">
+        <div class="step-num-big">01</div>
+        <div class="step-name">Beginning — Why</div>
+        <div class="step-desc">Define the clear objective. What is the question or problem? Who is the audience? What decision must they make after seeing this?</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--muted);font-size:22px;padding:0 4px;">→</div>
+      <div class="story-step" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;">
+        <div class="step-num-big">02</div>
+        <div class="step-name">Middle — What</div>
+        <div class="step-desc">Present key insights with supporting visualizations. Build context, show the data, surface the pattern. Logical, engaging order.</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--muted);font-size:22px;padding:0 4px;">→</div>
+      <div class="story-step" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;">
+        <div class="step-num-big">03</div>
+        <div class="step-name">End — So what</div>
+        <div class="step-desc">Actionable takeaway. What should the audience do now? Recommend a decision, propose next steps, or deepen understanding.</div>
+      </div>
+    </div>
+    <div class="quote-wrap" style="margin-top:20px;">
+      <div class="quote-text" style="font-size:16px;">"The goal is not to show all the data. The goal is to show the insight."</div>
+    </div>
+  </div>
+
+  <!-- S19: Correlation vs Causation deep dive -->
+  <div class="slide" data-day="2">
+    <div class="tag">Critical thinking</div>
+    <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">Correlation ≠ Causation</h2>
+    <div class="cards-grid cols-3" style="margin-top:20px;max-width:820px;">
+      <div class="card teal-card">
+        <div class="card-title">True correlation</div>
+        <div class="card-body">Height and shoe size. Taller people genuinely tend to have larger feet — a real biological relationship with a plausible mechanism.</div>
+      </div>
+      <div class="card accent-card">
+        <div class="card-title">Spurious correlation</div>
+        <div class="card-body">Ice cream sales and drowning. Both rise in summer — but temperature is the lurking variable driving both. Ice cream does not cause drowning.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">No correlation</div>
+        <div class="card-body">Movies released per year and earthquake frequency. These are unrelated — any apparent pattern is random noise in the data.</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;background:rgba(232,89,60,0.08);border:1px solid rgba(232,89,60,0.2);border-radius:10px;padding:14px 20px;max-width:700px;font-size:12px;line-height:1.7;text-align:left;">
+      <b style="color:var(--accent);">Questions to ask before claiming causation:</b> Is there a plausible mechanism? Was it a controlled experiment? Could a lurking variable explain both? Was it replicated across different datasets?
+    </div>
+  </div>
+
+  <!-- S20: Final slide -->
+  <div class="slide" data-day="2">
+    <div class="tag">Bootcamp complete</div>
+    <h1 class="slide-title">You are now<br><span class="accent-text">data literate.</span></h1>
+    <div class="cover-accent"></div>
+    <p class="slide-subtitle">You can navigate the data landscape, understand distributions, clean data, choose the right visualization, and tell a data-driven story.</p>
+    <div class="cards-grid cols-4" style="margin-top:20px;max-width:820px;">
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:22px;margin-bottom:6px;">📊</div>
+        <div class="card-title" style="text-align:center;">Understand data</div>
+      </div>
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:22px;margin-bottom:6px;">🔍</div>
+        <div class="card-title" style="text-align:center;">Clean & explore</div>
+      </div>
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:22px;margin-bottom:6px;">📈</div>
+        <div class="card-title" style="text-align:center;">Visualize clearly</div>
+      </div>
+      <div class="card accent-card" style="text-align:center;padding:14px;">
+        <div style="font-size:22px;margin-bottom:6px;">💡</div>
+        <div class="card-title" style="text-align:center;">Tell the story</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;font-size:12px;color:var(--muted);">"Statistical thinking will one day be as necessary for efficient citizenship as the ability to read and write." — H.G. Wells</div>
+  </div>
+
+</div><!-- end slide-area -->
+
+<!-- THUMBNAIL NAV -->
+<div class="thumb-nav" id="thumbNav"></div>
+
+<!-- KEYBOARD HINT -->
+<div class="kb-hint">
+  <span class="kb">←</span><span style="color:var(--muted)">prev</span>
+  <span class="kb">→</span><span style="color:var(--muted)">next</span>
+  <span class="kb">F</span><span style="color:var(--muted)">fullscreen</span>
+</div>
+
+<script>
+const SLIDES = document.querySelectorAll('.slide');
+const TOTAL = SLIDES.length;
+let current = 0;
+
+const LABELS = [
+  'Cover','3 Lenses','Tables','Data Types','Stats',
+  'Distribution','Correlation','Cleaning','D1 Recap',
+  'D2 Cover','Chart Quiz','Bar vs Hist','Gestalt','Axis Debate',
+  'Color','Explor/Explan','Declutter','Storytelling','Causation','Finish'
+];
+
+function buildThumbs() {
+  const nav = document.getElementById('thumbNav');
+  SLIDES.forEach((_, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'thumb' + (i===0?' active':'');
+    btn.textContent = LABELS[i] || (i+1);
+    btn.onclick = () => goTo(i);
+    nav.appendChild(btn);
+  });
+}
+
+function goTo(n) {
+  if(n < 0 || n >= TOTAL) return;
+  SLIDES[current].classList.remove('active');
+  document.querySelectorAll('.thumb')[current].classList.remove('active');
+  current = n;
+  SLIDES[current].classList.add('active');
+  document.querySelectorAll('.thumb')[current].classList.add('active');
+  document.querySelectorAll('.thumb')[current].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  document.getElementById('counter').textContent = (current+1) + ' / ' + TOTAL;
+  document.getElementById('progress').style.width = ((current+1)/TOTAL*100) + '%';
+  // Update day tabs
+  const day = SLIDES[current].dataset.day;
+  document.getElementById('tab-d1').classList.toggle('active', day==='1');
+  document.getElementById('tab-d2').classList.toggle('active', day==='2');
+  // Trigger canvas draws
+  if(current===5) setTimeout(drawDist, 50);
+  if(current===6) setTimeout(()=>setCorrType('strong-pos'), 50);
+  if(current===11) setTimeout(drawBarHist, 50);
+}
+
+function nextSlide() { goTo(current+1); }
+function prevSlide() { goTo(current-1); }
+
+function goToDay(day) {
+  for(let i=0;i<TOTAL;i++) {
+    if(SLIDES[i].dataset.day==day) { goTo(i); break; }
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if(e.key==='ArrowRight'||e.key===' ') { e.preventDefault(); nextSlide(); }
+  if(e.key==='ArrowLeft') { e.preventDefault(); prevSlide(); }
+  if(e.key==='f'||e.key==='F') document.documentElement.requestFullscreen?.();
+});
+
+// ── INTERACTIVE: DISTRIBUTION ──
+function drawDist() {
+  const canvas = document.getElementById('distCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const skew = parseFloat(document.getElementById('skewSlider').value);
+  const sd = parseFloat(document.getElementById('sdSlider').value);
+  ctx.clearRect(0,0,W,H);
+
+  const pts = 200;
+  const values = [];
+  for(let i=0;i<pts;i++) {
+    const u = (i/(pts-1))*6 - 3;
+    let y = Math.exp(-0.5*(u/sd)*(u/sd)) / (sd*Math.sqrt(2*Math.PI));
+    if(skew!==0) y *= (1 + skew*u*0.15);
+    values.push({x:u, y:Math.max(0,y)});
+  }
+  const maxY = Math.max(...values.map(v=>v.y));
+  const mean = skew * 0.3;
+  const median = skew * 0.15;
+
+  // Fill
+  ctx.beginPath();
+  values.forEach((v,i) => {
+    const px = (v.x+3)/6*W;
+    const py = H - 20 - (v.y/maxY)*(H-40);
+    i===0 ? ctx.moveTo(px,H-20) : null;
+    if(i===0) ctx.lineTo(px,py); else ctx.lineTo(px,py);
+  });
+  ctx.lineTo(W, H-20); ctx.lineTo(0, H-20); ctx.closePath();
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(232,89,60,0.4)');
+  grad.addColorStop(1,'rgba(232,89,60,0.05)');
+  ctx.fillStyle = grad; ctx.fill();
+
+  // Curve
+  ctx.beginPath();
+  values.forEach((v,i) => {
+    const px = (v.x+3)/6*W;
+    const py = H - 20 - (v.y/maxY)*(H-40);
+    i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+  });
+  ctx.strokeStyle = 'rgba(232,89,60,0.9)'; ctx.lineWidth = 2; ctx.stroke();
+
+  // Mean line
+  const mX = (mean+3)/6*W;
+  ctx.beginPath(); ctx.moveTo(mX,20); ctx.lineTo(mX,H-20);
+  ctx.strokeStyle = '#f2a623'; ctx.lineWidth = 1.5; ctx.setLineDash([4,3]); ctx.stroke();
+  ctx.setLineDash([]);
+
+  document.getElementById('dMean').textContent = (50+mean*8).toFixed(1);
+  document.getElementById('dMedian').textContent = (50+median*8).toFixed(1);
+}
+
+// ── INTERACTIVE: CORRELATION ──
+let corrData = [];
+function genCorr(r, n=60) {
+  const data = [];
+  for(let i=0;i<n;i++) {
+    const x = Math.random()*8 + 1;
+    const noise = (1-Math.abs(r)) * (Math.random()-0.5) * 10;
+    const y = r>0 ? r*x*1.2 + noise + 2 : Math.abs(r)*(-x*1.2+11) + noise + 2;
+    data.push({x,y:Math.max(0.5,Math.min(11,y))});
+  }
+  return data;
+}
+
+function setCorrType(type, btn) {
+  document.querySelectorAll('.corr-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const configs = {
+    'strong-pos': {r:0.92, desc:'Strong positive — as X increases, Y increases reliably.'},
+    'weak-pos':   {r:0.4,  desc:'Weak positive — slight upward trend but lots of scatter.'},
+    'none':       {r:0.02, desc:'No correlation — X and Y are unrelated. r ≈ 0.'},
+    'negative':   {r:-0.85,desc:'Negative — as X increases, Y decreases.'},
+    'spurious':   {r:0.88, desc:'⚠ Spurious — high r, but a hidden variable (e.g. season) explains both. Not causal.'},
+  };
+  const cfg = configs[type];
+  corrData = genCorr(cfg.r);
+  document.getElementById('corrVal').textContent = cfg.r.toFixed(2);
+  document.getElementById('corrVal').style.color = cfg.r > 0.5 ? 'var(--teal)' : cfg.r < -0.3 ? 'var(--accent)' : 'var(--muted)';
+  document.getElementById('corrDesc').textContent = cfg.desc;
+  drawCorr();
+}
+
+function drawCorr() {
+  const canvas = document.getElementById('corrCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const pad = 30;
+  corrData.forEach(p => {
+    const px = pad + (p.x/12)*(W-2*pad);
+    const py = H - pad - (p.y/12)*(H-2*pad);
+    ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2);
+    ctx.fillStyle = 'rgba(55,138,221,0.6)'; ctx.fill();
+  });
+  // Trend line
+  const n=corrData.length;
+  const mx=corrData.reduce((s,p)=>s+p.x,0)/n;
+  const my=corrData.reduce((s,p)=>s+p.y,0)/n;
+  const num=corrData.reduce((s,p)=>s+(p.x-mx)*(p.y-my),0);
+  const den=corrData.reduce((s,p)=>s+(p.x-mx)**2,0);
+  if(Math.abs(den)>0.01) {
+    const slope=num/den, intercept=my-slope*mx;
+    ctx.beginPath();
+    ctx.moveTo(pad, H-pad-(intercept+slope*0)/12*(H-2*pad));
+    ctx.lineTo(W-pad, H-pad-(intercept+slope*12)/12*(H-2*pad));
+    ctx.strokeStyle='rgba(232,89,60,0.7)'; ctx.lineWidth=2; ctx.stroke();
+  }
+}
+
+// ── BAR VS HISTOGRAM ──
+function drawBarHist() {
+  // Bar chart
+  const b = document.getElementById('barDemo');
+  if(!b) return;
+  const bc = b.getContext('2d');
+  const bW=b.width, bH=b.height;
+  bc.clearRect(0,0,bW,bH);
+  const cats=['N. America','Europe','Asia','S. America'];
+  const vals=[85,52,60,35];
+  const maxV=Math.max(...vals);
+  const barW=(bW-40)/(cats.length*1.8);
+  cats.forEach((c,i) => {
+    const x=20+(i*(bW-40)/cats.length)+10;
+    const barH=(vals[i]/maxV)*(bH-40);
+    bc.fillStyle='rgba(232,89,60,0.8)';
+    bc.fillRect(x,bH-20-barH,barW,barH);
+    bc.fillStyle='rgba(240,237,232,0.5)';
+    bc.font='9px DM Sans,sans-serif';
+    bc.textAlign='center';
+    bc.fillText(c,x+barW/2,bH-6);
+  });
+
+  // Histogram
+  const hc = document.getElementById('histDemo').getContext('2d');
+  const hW=document.getElementById('histDemo').width, hH=document.getElementById('histDemo').height;
+  hc.clearRect(0,0,hW,hH);
+  const bins=[4,8,12,9,6,3,1];
+  const maxB=Math.max(...bins);
+  const binW=(hW-20)/bins.length;
+  bins.forEach((v,i) => {
+    const x=10+i*binW;
+    const bh=(v/maxB)*(hH-40);
+    hc.fillStyle='rgba(55,138,221,0.8)';
+    hc.fillRect(x+1,hH-20-bh,binW-2,bh);
+    hc.fillStyle='rgba(240,237,232,0.4)';
+    hc.font='8px DM Sans,sans-serif';
+    hc.textAlign='center';
+    hc.fillText((10+i*10)+'s',x+binW/2,hH-6);
+  });
+}
+
+// ── DATA CLEANING ──
+function toggleClean(el) {
+  el.classList.toggle('done');
+  const check = el.querySelector('.step-check');
+  check.textContent = el.classList.contains('done') ? '✓' : el.querySelector('.clean-step-title').textContent.match(/\d/)[0];
+}
+
+// ── QUIZ ──
+function checkQuiz(btn, verdict, fbId) {
+  const fb = fbId ? document.getElementById(fbId) : document.getElementById('qfb1');
+  const siblings = btn.closest('.quiz-opts').querySelectorAll('.quiz-opt');
+  siblings.forEach(b=>{ b.classList.remove('correct','wrong'); b.disabled=true; });
+  btn.classList.add(verdict);
+  if(verdict==='correct') fb.innerHTML = '✓ Correct! ' + (btn.textContent==='Line chart'?'Line charts show trends over continuous time.':btn.textContent==='Bar chart'?'Bar charts compare discrete categories.':'Histograms show distributions of continuous data.');
+  else fb.innerHTML = '✗ Not quite. ' + (fbId==='qfb2'?'Bar charts compare categories — choose bar chart.':fbId==='qfb3'?'Histograms are for continuous data distributions — choose histogram.':'Line charts show trends over time — choose line chart.');
+}
+
+// ── CARD FLIP ──
+function flipCard(el) {
+  el.style.transform = el.style.transform === 'scale(0.97)' ? '' : 'scale(0.97)';
+}
+
+// ── INIT ──
+buildThumbs();
+goTo(0);
+</script>
+</body>
+</html>

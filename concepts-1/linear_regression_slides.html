@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linear Regression — Interactive Slides</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2236;
+  --border: rgba(255,255,255,0.07);
+  --accent: #6366f1;
+  --accent2: #a78bfa;
+  --coral: #f87171;
+  --amber: #fbbf24;
+  --teal: #34d399;
+  --blue: #60a5fa;
+  --text: #f1f0f0;
+  --muted: #6b7280;
+  --serif: 'Playfair Display', serif;
+  --sans: 'Inter', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 28px; background: var(--surface);
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.brand { font-family: var(--serif); font-size: 14px; color: var(--accent2); letter-spacing: 0.01em; }
+.hcontrols { display: flex; align-items: center; gap: 10px; }
+.hbtn {
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  font-family: var(--sans); font-size: 12px; padding: 6px 16px; border-radius: 6px;
+  cursor: pointer; transition: all 0.2s;
+}
+.hbtn:hover { border-color: var(--accent); color: var(--accent2); }
+.hbtn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.hbtn.primary:hover { background: #4f46e5; }
+.slide-ctr { font-size: 12px; color: var(--muted); min-width: 54px; text-align: center; }
+
+/* ── PROGRESS ── */
+.prog-bar { height: 2px; background: var(--border); flex-shrink: 0; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
+
+/* ── SECTION TABS ── */
+.stabs {
+  display: flex; border-bottom: 1px solid var(--border);
+  background: var(--surface); flex-shrink: 0; overflow-x: auto;
+}
+.stab {
+  padding: 9px 20px; font-size: 11px; font-weight: 500; color: var(--muted);
+  border: none; background: transparent; cursor: pointer;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  border-bottom: 2px solid transparent; transition: all 0.2s;
+  font-family: var(--sans); white-space: nowrap; flex-shrink: 0;
+}
+.stab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+.stab:hover:not(.active) { color: var(--text); }
+
+/* ── SLIDE AREA ── */
+.slide-area { flex: 1; overflow: hidden; position: relative; }
+.slide {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 36px 60px; text-align: center;
+  animation: sIn 0.3s ease;
+}
+.slide.active { display: flex; }
+@keyframes sIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── TYPE TOKENS ── */
+.tag {
+  display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; padding: 4px 12px; border-radius: 20px;
+  background: rgba(99,102,241,0.15); color: var(--accent2); margin-bottom: 16px;
+}
+.slide-title { font-family: var(--serif); font-size: clamp(30px,4.5vw,58px); line-height: 1.15; margin-bottom: 12px; }
+.slide-sub { font-size: clamp(13px,1.5vw,16px); color: var(--muted); max-width: 680px; line-height: 1.7; }
+.accent { color: var(--accent2); }
+.coral { color: var(--coral); }
+.teal-c { color: var(--teal); }
+.amber-c { color: var(--amber); }
+
+/* ── CARDS ── */
+.grid { display: grid; gap: 14px; width: 100%; max-width: 920px; margin-top: 24px; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: 1fr 1fr 1fr; }
+.g4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px 20px; text-align: left;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: rgba(99,102,241,0.3); }
+.card.a { border-color: rgba(99,102,241,0.35); background: rgba(99,102,241,0.07); }
+.card.t { border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.06); }
+.card.c { border-color: rgba(248,113,113,0.35); background: rgba(248,113,113,0.06); }
+.card.b { border-color: rgba(96,165,250,0.35); background: rgba(96,165,250,0.06); }
+.card.y { border-color: rgba(251,191,36,0.35); background: rgba(251,191,36,0.06); }
+.ct { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.cb { font-size: 12px; color: var(--muted); line-height: 1.65; }
+
+/* ── FORMULA BOX ── */
+.formula-box {
+  background: var(--surface2); border: 1px solid rgba(99,102,241,0.4);
+  border-radius: 12px; padding: 20px 28px; font-size: clamp(16px,2.2vw,24px);
+  font-family: 'Courier New', monospace; color: var(--accent2);
+  max-width: 680px; margin: 16px auto; letter-spacing: 0.02em;
+}
+.formula-parts { display: flex; gap: 24px; max-width: 800px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+.fpart {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px; text-align: center; min-width: 140px;
+}
+.fpart-val { font-size: 20px; font-weight: 600; font-family: monospace; margin-bottom: 4px; }
+.fpart-lbl { font-size: 11px; color: var(--muted); }
+
+/* ── TABLE ── */
+.tbl-wrap { max-width: 820px; width: 100%; margin-top: 20px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+thead { background: rgba(99,102,241,0.2); }
+thead th { padding: 10px 14px; font-weight: 600; color: var(--accent2); text-align: center; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+tbody tr { border-top: 1px solid var(--border); transition: background 0.15s; }
+tbody tr:hover { background: rgba(255,255,255,0.03); }
+tbody td { padding: 9px 14px; text-align: center; color: var(--muted); }
+tbody td:first-child { color: var(--text); font-weight: 500; }
+.td-pos { color: var(--teal) !important; }
+.td-neg { color: var(--coral) !important; }
+.td-key { color: var(--amber) !important; font-weight: 600; }
+tfoot td { padding: 10px 14px; text-align: center; background: rgba(251,191,36,0.12); color: var(--amber); font-weight: 600; font-size: 13px; }
+
+/* ── STEP LIST ── */
+.steps { list-style: none; max-width: 720px; width: 100%; margin-top: 20px; text-align: left; }
+.steps li { display: flex; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.steps li:last-child { border-bottom: none; }
+.snum {
+  min-width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(99,102,241,0.2); color: var(--accent2);
+  font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.st { font-weight: 600; color: var(--text); font-size: 13px; }
+.sd { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.6; }
+
+/* ── CHAIN RULE VISUAL ── */
+.chain-row { display: flex; align-items: center; gap: 10px; max-width: 860px; width: 100%; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+.chain-box {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; min-width: 180px; text-align: center;
+}
+.chain-box.outer { border-color: rgba(99,102,241,0.5); }
+.chain-box.inner { border-color: rgba(52,211,153,0.5); }
+.chain-box.result { border-color: rgba(248,113,113,0.5); }
+.chain-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px; }
+.chain-val { font-size: 16px; font-family: monospace; font-weight: 600; }
+.chain-box.outer .chain-val { color: var(--accent2); }
+.chain-box.inner .chain-val { color: var(--teal); }
+.chain-box.result .chain-val { color: var(--coral); }
+.chain-arrow { font-size: 20px; color: var(--muted); }
+
+/* ── INTERACTIVE: SSE CALCULATOR ── */
+.sse-wrap { display: flex; gap: 20px; max-width: 900px; width: 100%; margin-top: 16px; align-items: flex-start; }
+.sse-controls { min-width: 200px; text-align: left; }
+.sse-ctrl-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; display: block; margin-bottom: 5px; }
+.sse-ctrl { margin-bottom: 14px; }
+input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+.sse-stat { background: var(--surface2); border-radius: 8px; padding: 10px 14px; margin-top: 8px; }
+.sse-stat-lbl { font-size: 10px; color: var(--muted); }
+.sse-stat-val { font-size: 22px; font-weight: 600; color: var(--coral); font-family: monospace; }
+.sse-canvas-wrap { flex: 1; }
+canvas.main-canvas { border-radius: 10px; background: var(--surface); border: 1px solid var(--border); }
+
+/* ── GRADIENT DESCENT SIM ── */
+.gd-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; max-width: 860px; width: 100%; margin-bottom: 12px; }
+.gd-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; text-align: center; }
+.gd-lbl { font-size: 10px; color: var(--muted); }
+.gd-val { font-size: 17px; font-weight: 600; font-family: monospace; }
+.gd-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 860px; width: 100%; }
+.gd-log { font-size: 11px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; line-height: 1.9; max-width: 860px; width: 100%; margin-top: 10px; text-align: left; }
+.gd-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; max-width: 860px; width: 100%; }
+.gd-btn {
+  cursor: pointer; border: 1px solid var(--border); background: transparent; border-radius: 8px;
+  padding: 6px 16px; font-size: 12px; color: var(--text); font-family: var(--sans); transition: all 0.2s;
+}
+.gd-btn:hover { border-color: var(--accent); color: var(--accent2); }
+.gd-btn.go { background: var(--accent); border-color: var(--accent); color: #fff; }
+.gd-btn.go:hover { background: #4f46e5; }
+
+/* ── CONCEPT MAP ── */
+.cmap { display: flex; flex-direction: column; gap: 12px; max-width: 880px; width: 100%; margin-top: 16px; }
+.cmap-row { display: flex; gap: 10px; justify-content: center; }
+.cmap-node {
+  border-radius: 10px; padding: 12px 16px; text-align: center;
+  font-size: 12px; font-weight: 500; border: 1px solid var(--border);
+  min-width: 120px; background: var(--surface);
+}
+.cmap-node.done { border-color: rgba(52,211,153,0.5); background: rgba(52,211,153,0.08); color: var(--teal); }
+.cmap-node.core { border-color: rgba(99,102,241,0.5); background: rgba(99,102,241,0.08); color: var(--accent2); }
+.cmap-node.math { border-color: rgba(248,113,113,0.5); background: rgba(248,113,113,0.08); color: var(--coral); }
+.cmap-node.next { border-color: rgba(96,165,250,0.5); background: rgba(96,165,250,0.08); color: var(--blue); }
+.cmap-arrow { text-align: center; color: var(--muted); font-size: 16px; }
+.cmap-legend { display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 11px; flex-wrap: wrap; }
+.leg-item { display: flex; align-items: center; gap: 6px; }
+.leg-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* ── THUMB NAV ── */
+.tnav {
+  display: flex; gap: 5px; padding: 8px 24px; overflow-x: auto;
+  border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0;
+  scrollbar-width: thin;
+}
+.thumb {
+  min-width: 48px; height: 28px; border-radius: 4px; border: 1px solid var(--border);
+  background: var(--surface2); cursor: pointer; display: flex; align-items: center;
+  justify-content: center; font-size: 10px; color: var(--muted); flex-shrink: 0;
+  transition: all 0.15s; font-family: var(--sans);
+}
+.thumb.active { border-color: var(--accent2); color: var(--accent2); background: rgba(99,102,241,0.12); }
+.thumb:hover:not(.active) { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+/* ── KEYBOARD HINT ── */
+.kb-hint { position: fixed; bottom: 52px; right: 18px; font-size: 10px; color: var(--muted); display: flex; gap: 6px; z-index: 50; }
+.kb { background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; padding: 2px 6px; }
+
+/* ── TWO-COL LAYOUT ── */
+.two-col { display: flex; gap: 24px; max-width: 900px; width: 100%; margin-top: 20px; align-items: flex-start; }
+.col-l { flex: 1; text-align: left; }
+.col-r { flex: 1; text-align: left; }
+
+/* ── RULE CARDS ── */
+.rule-cards { display: flex; gap: 14px; max-width: 860px; width: 100%; margin-top: 20px; }
+.rule-card { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; }
+.rule-icon { font-size: 28px; margin-bottom: 10px; }
+.rule-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.rule-body { font-size: 12px; color: var(--muted); line-height: 1.7; }
+.rule-formula { font-family: monospace; font-size: 14px; color: var(--accent2); margin-top: 10px; background: var(--surface2); border-radius: 6px; padding: 6px 10px; display: inline-block; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <span class="brand">Linear Regression — Interactive Slides</span>
+  <div class="hcontrols">
+    <button class="hbtn" onclick="prev()">← Prev</button>
+    <span class="slide-ctr" id="ctr">1 / 15</span>
+    <button class="hbtn primary" onclick="next()">Next →</button>
+  </div>
+</header>
+<div class="prog-bar"><div class="prog-fill" id="pf"></div></div>
+
+<!-- SECTION TABS -->
+<div class="stabs">
+  <button class="stab active" id="tab0" onclick="jumpSection(0)">Intro</button>
+  <button class="stab" id="tab1" onclick="jumpSection(3)">The Model</button>
+  <button class="stab" id="tab2" onclick="jumpSection(5)">Error & SSE</button>
+  <button class="stab" id="tab3" onclick="jumpSection(8)">Calculus</button>
+  <button class="stab" id="tab4" onclick="jumpSection(11)">Gradient Descent</button>
+  <button class="stab" id="tab5" onclick="jumpSection(14)">Summary</button>
+</div>
+
+<div class="slide-area">
+
+<!-- ══════════════════════════════════════
+     SLIDE 1 — Cover
+══════════════════════════════════════ -->
+<div class="slide active" data-sec="0">
+  <div class="tag">Machine Learning — Regression</div>
+  <h1 class="slide-title">Linear<br><span class="accent">Regression</span></h1>
+  <p class="slide-sub" style="margin-top:12px;">From correlation to prediction — how a machine learns the best-fit line through data by minimising error, one step at a time.</p>
+  <div class="grid g4" style="margin-top:28px;max-width:800px;">
+    <div class="card a"><div class="ct">The model</div><div class="cb">ŷ = wx + b</div></div>
+    <div class="card t"><div class="ct">Loss function</div><div class="cb">SSE = Σ(y−ŷ)²</div></div>
+    <div class="card c"><div class="ct">Calculus</div><div class="cb">∂SSE/∂w, chain rule</div></div>
+    <div class="card b"><div class="ct">Learning</div><div class="cb">Gradient descent</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 2 — Why Regression
+══════════════════════════════════════ -->
+<div class="slide" data-sec="0">
+  <div class="tag">Motivation</div>
+  <h2 class="slide-title" style="font-size:clamp(26px,4vw,48px);">What problem does it solve?</h2>
+  <div class="grid g3" style="margin-top:22px;max-width:860px;">
+    <div class="card">
+      <div class="ct">Given data points…</div>
+      <div class="cb">You have observations: hours studied → test scores, house size → price, experience → salary.</div>
+    </div>
+    <div class="card a">
+      <div class="ct">Find the best line…</div>
+      <div class="cb">What straight line fits these points best? That line captures the relationship between X and Y.</div>
+    </div>
+    <div class="card t">
+      <div class="ct">Make predictions</div>
+      <div class="cb">Once learned, use the line to predict Y for any new X. "If someone studies 6 hours, predict their score."</div>
+    </div>
+  </div>
+  <div class="formula-parts" style="margin-top:20px;">
+    <div class="fpart"><div class="fpart-val" style="color:var(--accent2)">X</div><div class="fpart-lbl">Feature / Input</div></div>
+    <div class="fpart"><div class="fpart-val" style="color:var(--muted)">→</div><div class="fpart-lbl">learns relationship</div></div>
+    <div class="fpart"><div class="fpart-val" style="color:var(--teal)">Y</div><div class="fpart-lbl">Target / Output</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 3 — From Correlation to Regression
+══════════════════════════════════════ -->
+<div class="slide" data-sec="0">
+  <div class="tag">Bridge from bootcamp</div>
+  <h2 class="slide-title" style="font-size:clamp(26px,4vw,48px);">Correlation → Regression</h2>
+  <div class="two-col" style="max-width:820px;margin-top:20px;">
+    <div class="col-l">
+      <div class="card" style="margin-bottom:12px;">
+        <div class="ct" style="color:var(--accent2)">Correlation tells you…</div>
+        <div class="cb" style="margin-top:6px;">Direction and strength of the relationship between X and Y. r = 0.85 means strong positive. But it gives you no line, no formula, no prediction.</div>
+      </div>
+      <div class="card a">
+        <div class="ct">Regression gives you…</div>
+        <div class="cb" style="margin-top:6px;">The actual equation of the line. You can plug in any X and get a predicted Y. Correlation is the "is there a relationship?" — regression is the "what exactly is it?"</div>
+      </div>
+    </div>
+    <div class="col-r">
+      <div class="card t" style="margin-bottom:12px;">
+        <div class="ct">Slope formula (closed form)</div>
+        <div class="cb" style="margin-top:6px;font-family:monospace;font-size:13px;color:var(--teal);">w = Cov(X,Y) / Var(X)<br><br>w = Σ(xᵢ−x̄)(yᵢ−ȳ) / Σ(xᵢ−x̄)²</div>
+      </div>
+      <div class="card c">
+        <div class="ct">The special cases</div>
+        <div class="cb" style="margin-top:6px;">Feature constant → w undefined (Var(X) = 0)<br>Target constant → w = 0 (Cov = 0)<br>Both vary → w is meaningful</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 4 — The Line equation
+══════════════════════════════════════ -->
+<div class="slide" data-sec="1">
+  <div class="tag">The model</div>
+  <h2 class="slide-title" style="font-size:clamp(26px,4vw,52px);">ŷ = <span class="accent">w</span>x + <span class="coral">b</span></h2>
+  <div class="formula-box" style="margin-top:8px;">prediction = weight × feature + bias</div>
+  <div class="rule-cards" style="margin-top:16px;max-width:820px;">
+    <div class="rule-card">
+      <div class="rule-icon">📐</div>
+      <div class="rule-title" style="color:var(--accent2)">w — the weight (slope)</div>
+      <div class="rule-body">For every 1 unit increase in X, ŷ increases by w units. Controls the <em>tilt</em> of the line.</div>
+      <div class="rule-formula">w = 3 → score rises 3 pts per hour</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">🎯</div>
+      <div class="rule-title" style="color:var(--coral)">b — the bias (intercept)</div>
+      <div class="rule-body">The value of ŷ when X = 0. Shifts the entire line up or down. Learned alongside w.</div>
+      <div class="rule-formula">b = 40 → baseline score is 40</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">🔮</div>
+      <div class="rule-title" style="color:var(--teal)">ŷ — the prediction</div>
+      <div class="rule-body">Plug in any X to get the predicted Y. The goal of the whole model — not the actual Y, the best estimate.</div>
+      <div class="rule-formula">x=5 → ŷ = 3×5+40 = 55</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 5 — Weight rules
+══════════════════════════════════════ -->
+<div class="slide" data-sec="1">
+  <div class="tag">Weight — edge cases</div>
+  <h2 class="slide-title" style="font-size:clamp(26px,4vw,46px);">What controls the weight?</h2>
+  <div class="tbl-wrap" style="margin-top:20px;">
+    <table>
+      <thead>
+        <tr>
+          <th>Scenario</th><th>Feature X</th><th>Target Y</th><th>Numerator Cov(X,Y)</th><th>Denominator Var(X)</th><th>Weight w</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Feature varies, target constant</td><td class="td-pos">Changes</td><td class="td-neg">Fixed</td><td class="td-neg">= 0 (y−ȳ = 0 always)</td><td class="td-pos">≠ 0</td><td class="td-key">w = 0</td></tr>
+        <tr><td>Feature constant, target varies</td><td class="td-neg">Fixed</td><td class="td-pos">Changes</td><td class="td-neg">= 0 (x−x̄ = 0 always)</td><td class="td-neg">= 0</td><td class="td-neg">undefined ÷ 0</td></tr>
+        <tr><td>Both vary (normal case)</td><td class="td-pos">Changes</td><td class="td-pos">Changes</td><td class="td-pos">≠ 0</td><td class="td-pos">≠ 0</td><td class="td-key">meaningful w</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="slide-sub" style="margin-top:16px;font-size:12px;">A feature only gets a non-zero weight if it has <span class="accent">variance</span>. Zero-variance features are useless to a linear model.</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 6 — Error & SSE explained
+══════════════════════════════════════ -->
+<div class="slide" data-sec="2">
+  <div class="tag">Error — loss function</div>
+  <h2 class="slide-title" style="font-size:clamp(26px,4vw,46px);">How do we measure mistake?</h2>
+  <div class="grid g3" style="margin-top:18px;max-width:820px;">
+    <div class="card">
+      <div class="ct">Step 1 — residual error</div>
+      <div class="cb" style="font-family:monospace;font-size:13px;color:var(--accent2);margin-bottom:8px;">errorᵢ = yᵢ − ŷᵢ</div>
+      <div class="cb">Actual minus predicted. Positive = we under-predicted. Negative = we over-predicted.</div>
+    </div>
+    <div class="card a">
+      <div class="ct">Step 2 — why square?</div>
+      <div class="cb" style="font-family:monospace;font-size:13px;color:var(--accent2);margin-bottom:8px;">errorᵢ² = (yᵢ − ŷᵢ)²</div>
+      <div class="cb">Makes negatives positive. Penalises big errors more than small ones (non-linear punishment).</div>
+    </div>
+    <div class="card t">
+      <div class="ct">Step 3 — SSE</div>
+      <div class="cb" style="font-family:monospace;font-size:13px;color:var(--teal);margin-bottom:8px;">SSE = Σ(yᵢ − ŷᵢ)²</div>
+      <div class="cb">Sum over ALL observations. One number that captures total badness. Minimise this → best line.</div>
+    </div>
+  </div>
+  <div class="grid g3" style="margin-top:12px;max-width:820px;">
+    <div class="card c"><div class="ct">SSE = 0</div><div class="cb">Perfect fit. Every prediction exactly right. Rare in real data — means zero noise.</div></div>
+    <div class="card"><div class="ct">SSE is large</div><div class="cb">Line is far from the data. w and b need a lot of updating before the model is useful.</div></div>
+    <div class="card b"><div class="ct">SSE at minimum</div><div class="cb">Best possible fit with a straight line. Some SSE may remain — that's irreducible data noise.</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 7 — SSE worked example interactive
+══════════════════════════════════════ -->
+<div class="slide" data-sec="2">
+  <div class="tag">SSE — worked example</div>
+  <h2 class="slide-title" style="font-size:clamp(22px,3.2vw,40px);">Computing SSE on real data</h2>
+  <div class="sse-wrap">
+    <div class="sse-controls">
+      <div class="sse-ctrl">
+        <span class="sse-ctrl-lbl">w (slope)</span>
+        <input type="range" id="wSlider" min="0" max="20" value="8" step="0.5" oninput="updateSSE()">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);"><span>0</span><span id="wVal">8.0</span><span>20</span></div>
+      </div>
+      <div class="sse-ctrl">
+        <span class="sse-ctrl-lbl">b (intercept)</span>
+        <input type="range" id="bSlider" min="0" max="60" value="40" step="1" oninput="updateSSE()">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);"><span>0</span><span id="bVal">40</span><span>60</span></div>
+      </div>
+      <div class="sse-stat">
+        <div class="sse-stat-lbl">Total SSE</div>
+        <div class="sse-stat-val" id="sseVal">—</div>
+      </div>
+      <div class="sse-stat" style="margin-top:8px;">
+        <div class="sse-stat-lbl">Best possible SSE</div>
+        <div style="font-size:14px;font-weight:600;color:var(--teal);font-family:monospace;" id="bestSse">—</div>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6;">Drag the sliders to change the line. Watch the SSE respond. Find the minimum!</p>
+    </div>
+    <div class="sse-canvas-wrap">
+      <canvas id="sseCanvas" class="main-canvas" width="500" height="280"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 8 — SSE Data Table
+══════════════════════════════════════ -->
+<div class="slide" data-sec="2">
+  <div class="tag">SSE — row by row</div>
+  <h2 class="slide-title" style="font-size:clamp(22px,3.2vw,40px);">Computing SSE step by step</h2>
+  <p class="slide-sub" style="font-size:12px;margin-bottom:4px;">Dataset: Hours studied (X) → Test score (Y) &nbsp;|&nbsp; Line: ŷ = 8x + 40</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Obs</th><th>X (hours)</th><th>Y (actual)</th><th>ŷ = 8x+40</th><th>Error (y−ŷ)</th><th>Error²</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>1</td><td>50</td><td>48</td><td class="td-pos">+2</td><td class="td-key">4</td></tr>
+        <tr><td>2</td><td>2</td><td>55</td><td>56</td><td class="td-neg">−1</td><td class="td-key">1</td></tr>
+        <tr><td>3</td><td>3</td><td>65</td><td>64</td><td class="td-pos">+1</td><td class="td-key">1</td></tr>
+        <tr><td>4</td><td>4</td><td>70</td><td>72</td><td class="td-neg">−2</td><td class="td-key">4</td></tr>
+        <tr><td>5</td><td>5</td><td>80</td><td>80</td><td>0</td><td class="td-key">0</td></tr>
+      </tbody>
+      <tfoot><tr><td colspan="5" style="text-align:right;padding-right:20px;">Total SSE =</td><td>4+1+1+4+0 = <b>10</b></td></tr></tfoot>
+    </table>
+  </div>
+  <div class="grid g3" style="margin-top:14px;max-width:760px;">
+    <div class="card c"><div class="ct">Why not just sum errors?</div><div class="cb">+2 and −2 cancel to 0, hiding the fact we made mistakes on both sides.</div></div>
+    <div class="card a"><div class="ct">Why square?</div><div class="cb">−2 becomes 4. Errors become positive AND large errors are punished more heavily.</div></div>
+    <div class="card t"><div class="ct">The goal</div><div class="cb">Find w and b that make this total as small as possible — that's the optimal line.</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 9 — Why differentiate
+══════════════════════════════════════ -->
+<div class="slide" data-sec="3">
+  <div class="tag">Calculus — intuition first</div>
+  <h2 class="slide-title" style="font-size:clamp(26px,4vw,48px);">Why do we differentiate?</h2>
+  <div class="two-col" style="max-width:840px;margin-top:18px;">
+    <div class="col-l">
+      <div class="card" style="margin-bottom:12px;">
+        <div class="ct">SSE is a bowl-shaped curve</div>
+        <div class="cb" style="margin-top:6px;">If you plot SSE against w, you get a parabola. There is exactly one minimum — the lowest point of the bowl. That's the optimal w.</div>
+      </div>
+      <div class="card a">
+        <div class="ct">At the minimum, slope = 0</div>
+        <div class="cb" style="margin-top:6px;">At the very bottom of any bowl, the curve is flat — neither rising nor falling. Flat means the derivative equals zero.</div>
+      </div>
+      <div class="card t" style="margin-top:12px;">
+        <div class="ct">So we set ∂SSE/∂w = 0</div>
+        <div class="cb" style="margin-top:6px;">Solve that equation for w and you get the exact formula: w = Cov(X,Y)/Var(X). The calculus collapses into one clean answer.</div>
+      </div>
+    </div>
+    <div class="col-r">
+      <canvas id="bowlCanvas" class="main-canvas" width="380" height="310"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 10 — Chain Rule
+══════════════════════════════════════ -->
+<div class="slide" data-sec="3">
+  <div class="tag">Calculus — chain rule</div>
+  <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">The chain rule, plain English</h2>
+  <p class="slide-sub" style="font-size:13px;margin-bottom:4px;">SSE = (y − wx − b)² has two layers nested inside each other. You can't differentiate just the outer layer.</p>
+  <div class="chain-row">
+    <div class="chain-box outer">
+      <div class="chain-label">Outer function</div>
+      <div class="chain-val">f(u) = u²</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">df/du = 2u</div>
+    </div>
+    <div class="chain-arrow">×</div>
+    <div class="chain-box inner">
+      <div class="chain-label">Inner function</div>
+      <div class="chain-val">u = y−wx−b</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">du/dw = −x</div>
+    </div>
+    <div class="chain-arrow">=</div>
+    <div class="chain-box result">
+      <div class="chain-label">Chain rule result</div>
+      <div class="chain-val">2u × (−x)</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">= −2x(y−ŷ)</div>
+    </div>
+  </div>
+  <div class="grid g3" style="margin-top:18px;max-width:840px;">
+    <div class="card">
+      <div class="ct">Why 2u? (power rule)</div>
+      <div class="cb">d(u²)/du = 2u. Bring the exponent down, reduce it by 1. Standard calculus power rule.</div>
+    </div>
+    <div class="card a">
+      <div class="ct">Why −x? (inner derivative)</div>
+      <div class="cb">u = y − wx − b. Only −wx has w. Its derivative w.r.t. w is just its coefficient: −x.</div>
+    </div>
+    <div class="card t">
+      <div class="ct">Gear analogy</div>
+      <div class="cb">Wheel/hand = (wheel/gear) × (gear/hand). Two rates multiply through layers. That's the chain rule.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 11 — The two gradients
+══════════════════════════════════════ -->
+<div class="slide" data-sec="3">
+  <div class="tag">Calculus — gradients</div>
+  <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">∂SSE/∂w and ∂SSE/∂b</h2>
+  <div class="two-col" style="max-width:840px;margin-top:16px;">
+    <div class="col-l">
+      <div class="card a" style="margin-bottom:12px;">
+        <div class="ct" style="color:var(--accent2);font-size:14px;">Gradient of w</div>
+        <div style="font-family:monospace;font-size:15px;color:var(--accent2);margin:10px 0;">∂SSE/∂w = −2Σ xᵢ(yᵢ−ŷᵢ)</div>
+        <div class="cb">The xᵢ multiplier is there because w controls the <em>tilt</em> — its effect on SSE is amplified by how far each point is along the x-axis. Distant points feel w changes more.</div>
+      </div>
+      <div class="card t">
+        <div class="ct" style="color:var(--teal);font-size:14px;">Gradient of b</div>
+        <div style="font-family:monospace;font-size:15px;color:var(--teal);margin:10px 0;">∂SSE/∂b = −2Σ (yᵢ−ŷᵢ)</div>
+        <div class="cb">No xᵢ here. b shifts the entire line up or down equally for all x — so its gradient only cares about the raw sum of errors, not where each point sits.</div>
+      </div>
+    </div>
+    <div class="col-r">
+      <div class="card" style="margin-bottom:12px;">
+        <div class="ct">What the sign tells you</div>
+        <div class="cb" style="margin-top:6px;line-height:2;">
+          <span style="color:var(--coral)">Gradient positive →</span> SSE rises as w increases → <b>decrease</b> w<br>
+          <span style="color:var(--teal)">Gradient negative →</span> SSE falls as w increases → <b>increase</b> w<br>
+          <span style="color:var(--muted)">Gradient = 0 →</span> at the minimum → <b>stop</b>
+        </div>
+      </div>
+      <div class="card c">
+        <div class="ct">Key difference</div>
+        <div class="cb" style="margin-top:6px;">w's gradient <em>amplifies</em> by xᵢ — distant points pull w harder. b's gradient treats every point equally — it only cares about average residual.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 12 — Gradient Descent full loop
+══════════════════════════════════════ -->
+<div class="slide" data-sec="4">
+  <div class="tag">Gradient descent — the algorithm</div>
+  <h2 class="slide-title" style="font-size:clamp(22px,3vw,38px);">The learning loop — live simulation</h2>
+  <div class="gd-stats" id="gdStats">
+    <div class="gd-stat"><div class="gd-lbl">Iteration</div><div class="gd-val" id="gd-i">0</div></div>
+    <div class="gd-stat"><div class="gd-lbl">w (slope)</div><div class="gd-val" id="gd-w" style="color:var(--accent2)">1.00</div></div>
+    <div class="gd-stat"><div class="gd-lbl">b (intercept)</div><div class="gd-val" id="gd-b" style="color:var(--teal)">5.00</div></div>
+    <div class="gd-stat"><div class="gd-lbl">SSE</div><div class="gd-val" id="gd-sse" style="color:var(--coral)">—</div></div>
+  </div>
+  <div class="gd-charts">
+    <canvas id="gdLine" class="main-canvas" width="420" height="200"></canvas>
+    <canvas id="gdSSE" class="main-canvas" width="420" height="200"></canvas>
+  </div>
+  <div class="gd-log" id="gdLog">Press <b>Step ×1</b> to run one iteration and see the full calculation.</div>
+  <div class="gd-controls">
+    <label style="font-size:11px;color:var(--muted);">Learning rate</label>
+    <input type="range" id="lrSlider" min="1" max="20" value="6" step="1" style="width:120px;" oninput="document.getElementById('lrLbl').textContent='0.00'+this.value">
+    <span id="lrLbl" style="font-size:11px;font-weight:600;min-width:36px;color:var(--text);">0.006</span>
+    <button class="gd-btn" onclick="gdStep()">Step ×1</button>
+    <button class="gd-btn" onclick="for(let i=0;i<10;i++)gdStep()">Step ×10</button>
+    <button class="gd-btn go" onclick="gdAuto()" id="autoBtn">Auto run</button>
+    <button class="gd-btn" onclick="gdReset()">Reset</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 13 — Update rules
+══════════════════════════════════════ -->
+<div class="slide" data-sec="4">
+  <div class="tag">Update rules</div>
+  <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">How w and b update each iteration</h2>
+  <div class="grid g2" style="margin-top:18px;max-width:820px;">
+    <div class="card a">
+      <div class="ct" style="color:var(--accent2);font-size:14px;">Update w</div>
+      <div style="font-family:monospace;font-size:14px;color:var(--accent2);margin:10px 0;line-height:1.8;">w ← w − lr × ∂SSE/∂w<br>w ← w − lr × (−2Σ xᵢeᵢ)</div>
+      <div class="cb">lr × gradient tells us how far to step. The minus sign means we always step <em>downhill</em> — opposite the direction SSE is climbing.</div>
+    </div>
+    <div class="card t">
+      <div class="ct" style="color:var(--teal);font-size:14px;">Update b</div>
+      <div style="font-family:monospace;font-size:14px;color:var(--teal);margin:10px 0;line-height:1.8;">b ← b − lr × ∂SSE/∂b<br>b ← b − lr × (−2Σ eᵢ)</div>
+      <div class="cb">Same structure as w. b has no xᵢ because shifting the whole line up/down affects every point equally, regardless of where they sit on the x-axis.</div>
+    </div>
+    <div class="card c">
+      <div class="ct">Learning rate too large</div>
+      <div class="cb" style="margin-top:6px;">Steps overshoot the minimum. SSE bounces around instead of converging smoothly. Model diverges.</div>
+      <div class="rule-formula" style="font-size:11px;">lr = 0.5 → SSE oscillates</div>
+    </div>
+    <div class="card b">
+      <div class="ct">Learning rate too small</div>
+      <div class="cb" style="margin-top:6px;">Tiny steps converge very slowly. Model is correct eventually, but takes thousands of iterations.</div>
+      <div class="rule-formula" style="font-size:11px;">lr = 0.00001 → slow to learn</div>
+    </div>
+  </div>
+  <p class="slide-sub" style="font-size:12px;margin-top:14px;">After each update, go back to step 1: predict → compute SSE → compute gradients → update. Repeat until SSE stops falling.</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 14 — Convergence
+══════════════════════════════════════ -->
+<div class="slide" data-sec="4">
+  <div class="tag">Convergence</div>
+  <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">How the model "learns"</h2>
+  <ul class="steps">
+    <li><div class="snum">1</div><div><div class="st">Initialise</div><div class="sd">Start with random guesses for w and b (e.g. w=1, b=5). The line is far from the data — SSE is huge.</div></div></li>
+    <li><div class="snum">2</div><div><div class="st">Predict</div><div class="sd">For every observation, compute ŷ = wx + b using current w and b.</div></div></li>
+    <li><div class="snum">3</div><div><div class="st">Compute SSE</div><div class="sd">Sum all (yᵢ − ŷᵢ)². One number capturing total error. This is what we want to minimise.</div></div></li>
+    <li><div class="snum">4</div><div><div class="st">Compute gradients</div><div class="sd">∂SSE/∂w and ∂SSE/∂b — which direction is SSE climbing? How steeply?</div></div></li>
+    <li><div class="snum">5</div><div><div class="st">Update w and b</div><div class="sd">Step downhill: w ← w − lr×grad_w, b ← b − lr×grad_b. Both update simultaneously.</div></div></li>
+    <li><div class="snum">→</div><div><div class="st">Repeat from step 2</div><div class="sd">Keep iterating. SSE falls fast at first (large gradients), then slows near the minimum (small gradients). Stop when SSE barely changes.</div></div></li>
+  </ul>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 15 — Concept map / summary
+══════════════════════════════════════ -->
+<div class="slide" data-sec="5">
+  <div class="tag">Summary</div>
+  <h2 class="slide-title" style="font-size:clamp(24px,3.5vw,44px);">The full learning path</h2>
+  <div class="cmap">
+    <div class="cmap-row">
+      <div class="cmap-node done">Correlation</div>
+      <div class="cmap-node done">Mean & Variance</div>
+      <div class="cmap-node done">Scatter plot</div>
+    </div>
+    <div class="cmap-arrow">↓ prerequisites from bootcamp</div>
+    <div class="cmap-row">
+      <div class="cmap-node core">ŷ = wx + b</div>
+      <div class="cmap-node core">Weight w</div>
+      <div class="cmap-node core">Bias b</div>
+    </div>
+    <div class="cmap-arrow">↓ needs error measurement</div>
+    <div class="cmap-row">
+      <div class="cmap-node core">Residual (y−ŷ)</div>
+      <div class="cmap-node core">SSE = Σ(y−ŷ)²</div>
+    </div>
+    <div class="cmap-arrow">↓ needs calculus to minimise</div>
+    <div class="cmap-row">
+      <div class="cmap-node math">Derivative = 0 at minimum</div>
+      <div class="cmap-node math">Chain rule</div>
+      <div class="cmap-node math">∂SSE/∂w, ∂SSE/∂b</div>
+    </div>
+    <div class="cmap-arrow">↓ iterative optimisation</div>
+    <div class="cmap-row">
+      <div class="cmap-node core">Gradient descent loop</div>
+      <div class="cmap-node core">Learning rate</div>
+      <div class="cmap-node core">Convergence</div>
+    </div>
+    <div class="cmap-arrow">↓ what to learn next</div>
+    <div class="cmap-row">
+      <div class="cmap-node next">R² score</div>
+      <div class="cmap-node next">Multiple regression</div>
+      <div class="cmap-node next">Overfitting</div>
+      <div class="cmap-node next">Regularisation</div>
+    </div>
+  </div>
+  <div class="cmap-legend">
+    <div class="leg-item"><div class="leg-dot" style="background:var(--teal)"></div><span style="color:var(--muted);font-size:11px;">Covered in bootcamp</span></div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--accent2)"></div><span style="color:var(--muted);font-size:11px;">Covered in these slides</span></div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--blue)"></div><span style="color:var(--muted);font-size:11px;">Next steps</span></div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--coral)"></div><span style="color:var(--muted);font-size:11px;">Calculus engine</span></div>
+  </div>
+</div>
+
+</div><!-- end slide-area -->
+
+<!-- THUMB NAV -->
+<div class="tnav" id="tnav"></div>
+
+<div class="kb-hint">
+  <span class="kb">←</span><span style="color:var(--muted)">prev</span>
+  <span class="kb">→</span><span style="color:var(--muted)">next</span>
+  <span class="kb">F</span><span style="color:var(--muted)">fullscreen</span>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────
+const SLIDES = document.querySelectorAll('.slide');
+const TOTAL  = SLIDES.length;
+let cur = 0;
+
+const LABELS = [
+  'Cover','Why Regression','Correlation→','The Line','Weight Rules',
+  'Error & SSE','SSE Live','SSE Table','Why Derive?',
+  'Chain Rule','Gradients','GD Simulator','Update Rules','Convergence','Summary'
+];
+
+const SECTIONS = [0,0,0,1,1,2,2,2,3,3,3,4,4,4,5];
+const TABIDS   = ['tab0','tab0','tab0','tab1','tab1','tab2','tab2','tab2','tab3','tab3','tab3','tab4','tab4','tab4','tab5'];
+
+function buildThumbs(){
+  const nav = document.getElementById('tnav');
+  SLIDES.forEach((_,i)=>{
+    const b = document.createElement('button');
+    b.className='thumb'+(i===0?' active':'');
+    b.textContent = LABELS[i]||String(i+1);
+    b.onclick=()=>goTo(i);
+    nav.appendChild(b);
+  });
+}
+
+function goTo(n){
+  if(n<0||n>=TOTAL) return;
+  SLIDES[cur].classList.remove('active');
+  document.querySelectorAll('.thumb')[cur].classList.remove('active');
+  cur=n;
+  SLIDES[cur].classList.add('active');
+  const th=document.querySelectorAll('.thumb')[cur];
+  th.classList.add('active');
+  th.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  document.getElementById('ctr').textContent=(cur+1)+' / '+TOTAL;
+  document.getElementById('pf').style.width=((cur+1)/TOTAL*100)+'%';
+  // tabs
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(TABIDS[cur]).classList.add('active');
+  // lazy draws
+  if(cur===8) setTimeout(drawBowl,60);
+  if(cur===11) setTimeout(()=>{ gdDrawLine(); gdDrawSSEChart(); },60);
+}
+
+function next(){ goTo(cur+1); }
+function prev(){ goTo(cur-1); }
+function jumpSection(si){ for(let i=0;i<TOTAL;i++){ if(SECTIONS[i]===si){ goTo(i); break; } } }
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); next(); }
+  if(e.key==='ArrowLeft'){ e.preventDefault(); prev(); }
+  if(e.key==='f'||e.key==='F') document.documentElement.requestFullscreen?.();
+});
+
+// ─────────────────────────────────────────
+// SSE INTERACTIVE (slide 7)
+// ─────────────────────────────────────────
+const XS=[1,2,3,4,5], YS=[50,55,65,70,80];
+
+function sse(w,b){ return XS.reduce((s,x,i)=>{ const e=YS[i]-(w*x+b); return s+e*e; },0); }
+
+function optimalWB(){
+  const n=XS.length;
+  const mx=XS.reduce((a,b)=>a+b,0)/n, my=YS.reduce((a,b)=>a+b,0)/n;
+  const num=XS.reduce((s,x,i)=>s+(x-mx)*(YS[i]-my),0);
+  const den=XS.reduce((s,x)=>s+(x-mx)**2,0);
+  const w=num/den, b=my-w*mx;
+  return {w,b,sse:sse(w,b)};
+}
+
+function updateSSE(){
+  const w=parseFloat(document.getElementById('wSlider').value);
+  const b=parseFloat(document.getElementById('bSlider').value);
+  document.getElementById('wVal').textContent=w.toFixed(1);
+  document.getElementById('bVal').textContent=b.toFixed(0);
+  const s=sse(w,b);
+  const sseEl=document.getElementById('sseVal');
+  sseEl.textContent=s.toFixed(1);
+  sseEl.style.color=s<5?'var(--teal)':s<30?'var(--amber)':'var(--coral)';
+  const opt=optimalWB();
+  document.getElementById('bestSse').textContent=opt.sse.toFixed(2);
+  drawSSECanvas(w,b);
+}
+
+function drawSSECanvas(w,b){
+  const canvas=document.getElementById('sseCanvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,pad=36;
+  ctx.clearRect(0,0,W,H);
+
+  // axes
+  ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
+  ctx.fillStyle='rgba(107,114,128,0.8)';ctx.font='10px Inter,sans-serif';ctx.textAlign='center';
+  ctx.fillText('Hours studied (X)',W/2,H-6);
+  ctx.save();ctx.translate(10,H/2);ctx.rotate(-Math.PI/2);ctx.fillText('Score (Y)',0,0);ctx.restore();
+
+  const xMin=0,xMax=6,yMin=30,yMax=90;
+  function px(x){ return pad+(x-xMin)/(xMax-xMin)*(W-2*pad); }
+  function py(y){ return H-pad-(y-yMin)/(yMax-yMin)*(H-2*pad); }
+
+  // grid lines
+  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;
+  [40,50,60,70,80].forEach(y=>{ ctx.beginPath();ctx.moveTo(pad,py(y));ctx.lineTo(W-pad,py(y));ctx.stroke(); });
+  [1,2,3,4,5].forEach(x=>{ ctx.beginPath();ctx.moveTo(px(x),pad);ctx.lineTo(px(x),H-pad);ctx.stroke(); });
+
+  // regression line
+  ctx.beginPath();ctx.moveTo(px(0),py(b));ctx.lineTo(px(6),py(6*w+b));
+  ctx.strokeStyle='rgba(99,102,241,0.7)';ctx.lineWidth=2;ctx.stroke();
+
+  // error lines + data points
+  XS.forEach((x,i)=>{
+    const pred=w*x+b;
+    const ppx=px(x),ppy=py(YS[i]),ppyhat=py(pred);
+    ctx.beginPath();ctx.moveTo(ppx,ppy);ctx.lineTo(ppx,ppyhat);
+    ctx.strokeStyle='rgba(251,191,36,0.4)';ctx.lineWidth=1.5;ctx.setLineDash([3,2]);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();ctx.arc(ppx,ppy,5,0,Math.PI*2);
+    ctx.fillStyle='#60a5fa';ctx.fill();
+    ctx.beginPath();ctx.arc(ppx,ppyhat,4,0,Math.PI*2);
+    ctx.fillStyle='rgba(99,102,241,0.7)';ctx.fill();
+  });
+
+  // legend
+  ctx.fillStyle='#60a5fa';ctx.font='10px Inter';
+  ctx.fillText('● actual',W-70,18);
+  ctx.fillStyle='rgba(99,102,241,0.8)';
+  ctx.fillText('● predicted',W-70,30);
+  ctx.fillStyle='rgba(251,191,36,0.7)';
+  ctx.fillText('| error',W-70,42);
+}
+
+// ─────────────────────────────────────────
+// BOWL CANVAS (slide 9)
+// ─────────────────────────────────────────
+function drawBowl(){
+  const canvas=document.getElementById('bowlCanvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const pad=40,wMin=0,wMax=20,cx=(W-2*pad)/2,cy=H-60;
+  function mapW(w){ return pad+(w-wMin)/(wMax-wMin)*(W-2*pad); }
+  function mapSSE(s){ return H-pad-s/5500*(H-2*pad-20); }
+
+  // draw parabola SSE vs w (holding b=40 fixed)
+  const pts=[];
+  for(let w=0;w<=20;w+=0.2){
+    const s=XS.reduce((acc,x,i)=>{ const e=YS[i]-(w*x+40); return acc+e*e; },0);
+    pts.push({w,s});
+  }
+  const minPt=pts.reduce((a,b)=>a.s<b.s?a:b);
+
+  // fill area
+  ctx.beginPath();
+  pts.forEach((p,i)=>{
+    const px=mapW(p.w),py=mapSSE(Math.min(p.s,5500));
+    i===0?ctx.moveTo(px,H-pad):ctx.lineTo(px,py);
+  });
+  ctx.lineTo(mapW(20),H-pad);ctx.closePath();
+  const grad=ctx.createLinearGradient(0,pad,0,H-pad);
+  grad.addColorStop(0,'rgba(99,102,241,0.25)');
+  grad.addColorStop(1,'rgba(99,102,241,0.03)');
+  ctx.fillStyle=grad;ctx.fill();
+
+  // curve
+  ctx.beginPath();
+  pts.forEach((p,i)=>{
+    const px=mapW(p.w),py=mapSSE(Math.min(p.s,5500));
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  });
+  ctx.strokeStyle='rgba(99,102,241,0.9)';ctx.lineWidth=2.5;ctx.stroke();
+
+  // minimum marker
+  const mx=mapW(minPt.w),my=mapSSE(minPt.s);
+  ctx.beginPath();ctx.arc(mx,my,6,0,Math.PI*2);
+  ctx.fillStyle='var(--teal)';ctx.fill();
+  ctx.fillStyle='rgba(52,211,153,0.9)';ctx.font='11px Inter';ctx.textAlign='left';
+  ctx.fillText('minimum — slope = 0',mx+10,my+4);
+
+  // slope = 0 indicator
+  ctx.beginPath();ctx.moveTo(mx-25,my);ctx.lineTo(mx+25,my);
+  ctx.strokeStyle='rgba(52,211,153,0.6)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // axes
+  ctx.fillStyle='rgba(107,114,128,0.8)';ctx.font='10px Inter';ctx.textAlign='center';
+  ctx.fillText('w (weight)',W/2,H-10);
+  ctx.save();ctx.translate(12,H/2);ctx.rotate(-Math.PI/2);ctx.fillText('SSE',0,0);ctx.restore();
+
+  ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
+}
+
+// ─────────────────────────────────────────
+// GRADIENT DESCENT (slide 12)
+// ─────────────────────────────────────────
+const GXS=[1,2,3,4,5,6,7], GYS=[22,28,35,40,50,55,65];
+let gw=1,gb=5,gi=0,gsseH=[],gAutoTimer=null;
+
+function getLR(){ return parseInt(document.getElementById('lrSlider').value)/1000; }
+function gsse(w,b){ return GXS.reduce((s,x,i)=>{ const e=GYS[i]-(w*x+b); return s+e*e; },0); }
+function ggrads(w,b){ let dw=0,db=0; GXS.forEach((x,i)=>{ const e=GYS[i]-(w*x+b); dw-=2*x*e; db-=2*e; }); return{dw,db}; }
+
+function gdStep(){
+  const lr=getLR();
+  const preds=GXS.map(x=>gw*x+gb);
+  const s=gsse(gw,gb);
+  const{dw,db}=ggrads(gw,gb);
+  const errs=GXS.map((x,i)=>GYS[i]-preds[i]);
+  document.getElementById('gdLog').innerHTML=
+    `<b>Iteration ${gi+1}</b> &nbsp;|&nbsp; `+
+    `Predictions ŷ: [${preds.map(v=>v.toFixed(1)).join(', ')}]<br>`+
+    `Errors: [${errs.map(v=>v.toFixed(1)).join(', ')}] &nbsp;|&nbsp; SSE=${s.toFixed(2)}<br>`+
+    `∂SSE/∂w=${dw.toFixed(2)} &nbsp; ∂SSE/∂b=${db.toFixed(2)}<br>`+
+    `<span style="color:var(--accent2)">w: ${gw.toFixed(3)} − ${lr}×${dw.toFixed(2)} = <b>${(gw-lr*dw).toFixed(3)}</b></span> &nbsp;|&nbsp; `+
+    `<span style="color:var(--teal)">b: ${gb.toFixed(3)} − ${lr}×${db.toFixed(2)} = <b>${(gb-lr*db).toFixed(3)}</b></span>`;
+  gw-=lr*dw; gb-=lr*db; gi++;
+  const ns=gsse(gw,gb);
+  gsseH.push(+ns.toFixed(3));
+  document.getElementById('gd-i').textContent=gi;
+  document.getElementById('gd-w').textContent=gw.toFixed(3);
+  document.getElementById('gd-b').textContent=gb.toFixed(3);
+  const se=document.getElementById('gd-sse');
+  se.textContent=ns.toFixed(2);
+  se.style.color=ns<2?'var(--teal)':ns<20?'var(--amber)':'var(--coral)';
+  gdDrawLine(); gdDrawSSEChart();
+}
+
+function gdAuto(){
+  const btn=document.getElementById('autoBtn');
+  if(gAutoTimer){ clearInterval(gAutoTimer); gAutoTimer=null; btn.textContent='Auto run'; btn.classList.remove('go'); return; }
+  btn.textContent='Stop'; btn.classList.add('go');
+  gAutoTimer=setInterval(()=>{
+    gdStep();
+    if(gsse(gw,gb)<0.5){ clearInterval(gAutoTimer); gAutoTimer=null; btn.textContent='Auto run'; btn.classList.remove('go'); }
+  },100);
+}
+
+function gdReset(){
+  if(gAutoTimer){ clearInterval(gAutoTimer); gAutoTimer=null; document.getElementById('autoBtn').textContent='Auto run'; document.getElementById('autoBtn').classList.remove('go'); }
+  gw=1; gb=5; gi=0; gsseH=[];
+  document.getElementById('gd-i').textContent='0';
+  document.getElementById('gd-w').textContent='1.00';
+  document.getElementById('gd-b').textContent='5.00';
+  document.getElementById('gd-sse').textContent='—';
+  document.getElementById('gdLog').textContent='Press Step ×1 to run one iteration and see the full calculation.';
+  gdDrawLine(); gdDrawSSEChart();
+}
+
+function gdDrawLine(){
+  const canvas=document.getElementById('gdLine');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,pad=32;
+  ctx.clearRect(0,0,W,H);
+  const xMin=0,xMax=8,yMin=0,yMax=80;
+  function px(x){ return pad+(x-xMin)/(xMax-xMin)*(W-2*pad); }
+  function py(y){ return H-pad-(y-yMin)/(yMax-yMin)*(H-2*pad); }
+  // axes
+  ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
+  ctx.fillStyle='rgba(107,114,128,0.6)';ctx.font='9px Inter';ctx.textAlign='center';
+  ctx.fillText('X',W/2,H-4); ctx.fillText('Y',8,H/2);
+  // grid
+  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;
+  [20,40,60,80].forEach(y=>{ ctx.beginPath();ctx.moveTo(pad,py(y));ctx.lineTo(W-pad,py(y));ctx.stroke(); });
+  // line
+  ctx.beginPath();ctx.moveTo(px(0),py(gb));ctx.lineTo(px(8),py(8*gw+gb));
+  ctx.strokeStyle='rgba(99,102,241,0.8)';ctx.lineWidth=2;ctx.stroke();
+  // points
+  GXS.forEach((x,i)=>{
+    ctx.beginPath();ctx.arc(px(x),py(GYS[i]),4.5,0,Math.PI*2);
+    ctx.fillStyle='#60a5fa';ctx.fill();
+  });
+}
+
+function gdDrawSSEChart(){
+  const canvas=document.getElementById('gdSSE');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,pad=32;
+  ctx.clearRect(0,0,W,H);
+  if(gsseH.length===0){
+    ctx.fillStyle='rgba(107,114,128,0.4)';ctx.font='11px Inter';ctx.textAlign='center';
+    ctx.fillText('SSE curve will appear here',W/2,H/2);
+    return;
+  }
+  const maxS=Math.max(...gsseH,1);
+  function px(i){ return pad+i/(gsseH.length-1||1)*(W-2*pad); }
+  function py(s){ return H-pad-(s/maxS)*(H-2*pad); }
+  // fill
+  ctx.beginPath();
+  gsseH.forEach((s,i)=>{ i===0?ctx.moveTo(px(i),py(s)):ctx.lineTo(px(i),py(s)); });
+  ctx.lineTo(px(gsseH.length-1),H-pad);ctx.lineTo(pad,H-pad);ctx.closePath();
+  const g2=ctx.createLinearGradient(0,pad,0,H-pad);
+  g2.addColorStop(0,'rgba(248,113,113,0.3)');g2.addColorStop(1,'rgba(248,113,113,0.02)');
+  ctx.fillStyle=g2;ctx.fill();
+  ctx.beginPath();
+  gsseH.forEach((s,i)=>{ i===0?ctx.moveTo(px(i),py(s)):ctx.lineTo(px(i),py(s)); });
+  ctx.strokeStyle='rgba(248,113,113,0.9)';ctx.lineWidth=2;ctx.stroke();
+  // axes
+  ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
+  ctx.fillStyle='rgba(107,114,128,0.6)';ctx.font='9px Inter';ctx.textAlign='center';
+  ctx.fillText('Iterations',W/2,H-4);ctx.fillText('SSE',8,H/2);
+}
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+buildThumbs();
+goTo(0);
+setTimeout(()=>{ updateSSE(); },200);
+</script>
+</body>
+</html>
