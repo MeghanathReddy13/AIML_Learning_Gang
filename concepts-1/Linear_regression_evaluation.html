@@ -1,0 +1,552 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Linear Regression Evaluation: Step-by-Step with Sample Dataset</title>
+<style>
+  :root {
+    --blue:#12355b;
+    --teal:#0b7285;
+    --light:#f4f7fb;
+    --dark:#222;
+    --muted:#596579;
+    --accent:#edf6f9;
+    --warn:#fff3bf;
+    --good:#d3f9d8;
+    --bad:#ffe3e3;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0;
+    background:#e9eef5;
+    font-family: Arial, Helvetica, sans-serif;
+    color:var(--dark);
+    line-height:1.55;
+  }
+  .slide {
+    width: 1100px;
+    min-height: 720px;
+    margin: 34px auto;
+    padding: 48px 58px;
+    background:white;
+    box-shadow: 0 8px 24px rgba(20,40,70,.18);
+    border-radius: 18px;
+    page-break-after: always;
+  }
+  h1 { font-size:44px; color:var(--blue); margin:0 0 18px; }
+  h2 { font-size:34px; color:var(--blue); margin:0 0 20px; }
+  h3 { font-size:24px; color:var(--teal); margin:22px 0 10px; }
+  p, li, td, th { font-size:20px; }
+  .subtitle { font-size:25px; color:var(--muted); max-width:880px; }
+  .big { font-size:28px; }
+  .formula {
+    background:var(--accent);
+    border-left:8px solid var(--teal);
+    padding:18px 22px;
+    margin:22px 0;
+    font-size:25px;
+    font-family: Georgia, serif;
+  }
+  .note {
+    background:#f8f9fa;
+    border-left:6px solid #adb5bd;
+    padding:16px 20px;
+    margin:20px 0;
+  }
+  .good { background:var(--good); padding:10px 14px; border-radius:10px; }
+  .bad { background:var(--bad); padding:10px 14px; border-radius:10px; }
+  .warn { background:var(--warn); padding:10px 14px; border-radius:10px; }
+  table {
+    width:100%;
+    border-collapse:collapse;
+    margin:20px 0;
+  }
+  th {
+    background:var(--blue);
+    color:white;
+    text-align:left;
+  }
+  th, td {
+    border:1px solid #cfd8e3;
+    padding:11px 13px;
+  }
+  tr:nth-child(even) td { background:#f8fbff; }
+  code, pre {
+    background:#f1f3f5;
+    padding:4px 7px;
+    border-radius:6px;
+    font-size:18px;
+  }
+  pre {
+    padding:18px;
+    white-space:pre-wrap;
+    font-size:21px;
+  }
+  .grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:22px;
+  }
+  .card {
+    background:#f8fbff;
+    border:1px solid #d8e2ef;
+    border-radius:14px;
+    padding:18px 20px;
+  }
+  .center { text-align:center; }
+  .small { font-size:17px; color:var(--muted); }
+  .flow {
+    font-size:24px;
+    background:#f8fbff;
+    padding:20px;
+    border-radius:14px;
+    text-align:center;
+  }
+  @media print {
+    body { background:white; }
+    .slide { box-shadow:none; margin:0; border-radius:0; width:100%; min-height:100vh; }
+  }
+</style>
+</head>
+<body>
+
+<section class="slide">
+  <h1>Linear Regression Evaluation</h1>
+  <p class="subtitle">A step-by-step teaching deck using a small sample dataset.</p>
+  <div class="formula">Goal: understand when validation happens, how metrics are calculated, and when regularization is used.</div>
+  <p class="big">We will predict <b>house price</b> from <b>house size</b>.</p>
+</section>
+
+<section class="slide">
+  <h2>1. What is the model trying to learn?</h2>
+  <p>For a simple linear regression model, we assume the relationship looks like this:</p>
+  <div class="formula">Predicted Price = Intercept + Slope × Size</div>
+  <p>In machine learning notation:</p>
+  <div class="formula">ŷ = β₀ + β₁x</div>
+  <ul>
+    <li><b>x</b> = feature, such as house size</li>
+    <li><b>ŷ</b> = predicted target value</li>
+    <li><b>β₀</b> = intercept</li>
+    <li><b>β₁</b> = slope or coefficient</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>2. Sample Dataset</h2>
+  <p>Target: <b>Price in thousands of dollars</b>.</p>
+  <table>
+    <tr><th>Row</th><th>House Size sq ft</th><th>Actual Price $000</th><th>Use</th></tr>
+    <tr><td>1</td><td>1000</td><td>150</td><td>Train</td></tr>
+    <tr><td>2</td><td>1200</td><td>180</td><td>Train</td></tr>
+    <tr><td>3</td><td>1400</td><td>200</td><td>Train</td></tr>
+    <tr><td>4</td><td>1600</td><td>235</td><td>Train</td></tr>
+    <tr><td>5</td><td>1800</td><td>260</td><td>Train</td></tr>
+    <tr><td>6</td><td>2000</td><td>300</td><td>Train</td></tr>
+    <tr><td>7</td><td>2200</td><td>320</td><td>Train</td></tr>
+    <tr><td>8</td><td>2400</td><td>360</td><td>Train</td></tr>
+    <tr><td>9</td><td>1500</td><td>225</td><td>Validation</td></tr>
+    <tr><td>10</td><td>2100</td><td>315</td><td>Validation</td></tr>
+    <tr><td>11</td><td>1700</td><td>250</td><td>Test</td></tr>
+    <tr><td>12</td><td>2300</td><td>345</td><td>Test</td></tr>
+  </table>
+</section>
+
+<section class="slide">
+  <h2>3. Why split the data?</h2>
+  <div class="flow">
+    Train data → Learn coefficients<br><br>
+    Validation data → Compare model choices<br><br>
+    Test data → Final unbiased evaluation
+  </div>
+  <p>The model should not see validation or test rows while learning coefficients.</p>
+  <div class="note">
+    <b>Important:</b> validation checks whether the trained model performs well on data it did not learn from.
+  </div>
+</section>
+
+<section class="slide">
+  <h2>4. Train the model</h2>
+  <p>Using only the 8 training rows, linear regression learns:</p>
+  <div class="formula">Predicted Price = -1.845 + 0.1485 × Size</div>
+  <p>Interpretation:</p>
+  <ul>
+    <li>The model predicts about <b>$148.50</b> increase in price per additional square foot.</li>
+    <li>The intercept is a mathematical anchor. It is not always meaningful in business terms.</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>5. How did the model learn the line?</h2>
+  <p>The model tries many possible lines and chooses the one with the smallest squared error on training data.</p>
+  <div class="formula">Training Objective = minimize Σ(Actual − Predicted)²</div>
+  <p>For each training row:</p>
+  <pre>
+Actual price - Predicted price = Error
+Squared error = Error²
+  </pre>
+  <p>The best line is the one with the smallest total squared error.</p>
+</section>
+
+<section class="slide">
+  <h2>6. After training, coefficients are frozen</h2>
+  <p>Once the model has learned this equation:</p>
+  <div class="formula">ŷ = -1.845 + 0.1485 × Size</div>
+  <p>Validation starts.</p>
+  <div class="warn">
+    During validation, the model does not update β₀ or β₁. It only predicts and gets judged.
+  </div>
+</section>
+
+<section class="slide">
+  <h2>7. Validation Row 1 Calculation</h2>
+  <p>Validation row:</p>
+  <table>
+    <tr><th>Size</th><th>Actual Price $000</th></tr>
+    <tr><td>1500</td><td>225</td></tr>
+  </table>
+  <div class="formula">Predicted = -1.845 + 0.1485 × 1500 = 220.923</div>
+  <p>Error:</p>
+  <div class="formula">Actual − Predicted = 225 − 220.923 = 4.077</div>
+  <p>The model is off by about <b>$4,077</b>.</p>
+</section>
+
+<section class="slide">
+  <h2>8. Validation Row 2 Calculation</h2>
+  <p>Validation row:</p>
+  <table>
+    <tr><th>Size</th><th>Actual Price $000</th></tr>
+    <tr><td>2100</td><td>315</td></tr>
+  </table>
+  <div class="formula">Predicted = -1.845 + 0.1485 × 2100 = 310.030</div>
+  <p>Error:</p>
+  <div class="formula">Actual − Predicted = 315 − 310.030 = 4.970</div>
+  <p>The model is off by about <b>$4,970</b>.</p>
+</section>
+
+<section class="slide">
+  <h2>9. Validation Results Table</h2>
+  <table>
+    <tr><th>Size</th><th>Actual $000</th><th>Predicted $000</th><th>Error $000</th><th>Absolute Error</th></tr>
+    <tr><td>1500</td><td>225</td><td>220.923</td><td>4.077</td><td>4.077</td></tr>
+    <tr><td>2100</td><td>315</td><td>310.030</td><td>4.970</td><td>4.970</td></tr>
+  </table>
+  <p>Now we calculate validation metrics.</p>
+</section>
+
+<section class="slide">
+  <h2>10. MAE on Validation Data</h2>
+  <p>MAE means <b>Mean Absolute Error</b>.</p>
+  <div class="formula">MAE = average of absolute errors</div>
+  <div class="formula">MAE = (4.077 + 4.970) / 2 = 4.524</div>
+  <p>Because prices are in thousands:</p>
+  <div class="good">Validation MAE ≈ $4,524</div>
+  <p>Meaning: on average, the model is off by about $4,524 on validation data.</p>
+</section>
+
+<section class="slide">
+  <h2>11. RMSE on Validation Data</h2>
+  <p>RMSE means <b>Root Mean Squared Error</b>.</p>
+  <div class="formula">RMSE = √ average(Error²)</div>
+  <div class="formula">RMSE = √((4.077² + 4.970²) / 2) = 4.546</div>
+  <div class="good">Validation RMSE ≈ $4,546</div>
+  <p>RMSE punishes large errors more than MAE.</p>
+</section>
+
+<section class="slide">
+  <h2>12. R² on Validation Data</h2>
+  <p>R² compares the model against a simple baseline.</p>
+  <div class="formula">Baseline = predict the average actual price every time</div>
+  <p>Validation actual prices:</p>
+  <pre>225 and 315</pre>
+  <p>Average actual price:</p>
+  <pre>(225 + 315) / 2 = 270</pre>
+  <p>If the model cannot beat this baseline, it is not useful.</p>
+</section>
+
+<section class="slide">
+  <h2>13. R² Formula</h2>
+  <div class="formula">R² = 1 − SSE / SST</div>
+  <ul>
+    <li><b>SSE</b> = model squared error</li>
+    <li><b>SST</b> = baseline squared error</li>
+  </ul>
+  <p>For this validation set:</p>
+  <div class="formula">Validation R² ≈ 0.990</div>
+  <div class="good">The model explains about 99% of the variation in validation prices.</div>
+</section>
+
+<section class="slide">
+  <h2>14. What does validation tell us?</h2>
+  <table>
+    <tr><th>Metric</th><th>Validation Result</th><th>Meaning</th></tr>
+    <tr><td>MAE</td><td>4.524</td><td>Average error ≈ $4,524</td></tr>
+    <tr><td>RMSE</td><td>4.546</td><td>Typical error ≈ $4,546</td></tr>
+    <tr><td>R²</td><td>0.990</td><td>Very strong fit on validation data</td></tr>
+  </table>
+  <p>This model appears to generalize well on validation data.</p>
+</section>
+
+<section class="slide">
+  <h2>15. Validation is used to compare model choices</h2>
+  <p>Suppose we try three models:</p>
+  <table>
+    <tr><th>Model</th><th>Features</th><th>Validation RMSE</th></tr>
+    <tr><td>A</td><td>Size only</td><td>4.55</td></tr>
+    <tr><td>B</td><td>Size + Bedrooms</td><td>5.80</td></tr>
+    <tr><td>C</td><td>Size + Bedrooms + Age + Zip Code</td><td>9.20</td></tr>
+  </table>
+  <p>Choose Model A because it has the lowest validation RMSE and is simplest.</p>
+</section>
+
+<section class="slide">
+  <h2>16. What if train is good but validation is poor?</h2>
+  <table>
+    <tr><th>Metric</th><th>Train</th><th>Validation</th></tr>
+    <tr><td>RMSE</td><td>1.2</td><td>35.0</td></tr>
+    <tr><td>R²</td><td>0.99</td><td>0.42</td></tr>
+  </table>
+  <div class="bad">This is overfitting.</div>
+  <p>The model memorized training rows but failed on unseen validation rows.</p>
+</section>
+
+<section class="slide">
+  <h2>17. What if both train and validation are poor?</h2>
+  <table>
+    <tr><th>Metric</th><th>Train</th><th>Validation</th></tr>
+    <tr><td>RMSE</td><td>40.0</td><td>42.0</td></tr>
+    <tr><td>R²</td><td>0.20</td><td>0.18</td></tr>
+  </table>
+  <div class="bad">This is underfitting.</div>
+  <p>The model is too simple, missing important patterns, or the features are weak.</p>
+</section>
+
+<section class="slide">
+  <h2>18. Good generalization pattern</h2>
+  <table>
+    <tr><th>Metric</th><th>Train</th><th>Validation</th></tr>
+    <tr><td>RMSE</td><td>4.2</td><td>4.5</td></tr>
+    <tr><td>R²</td><td>0.99</td><td>0.99</td></tr>
+  </table>
+  <div class="good">Train and validation performance are close.</div>
+  <p>This suggests the model learned a real pattern, not just noise.</p>
+</section>
+
+<section class="slide">
+  <h2>19. Test set evaluation</h2>
+  <p>After model selection is complete, evaluate once on the test set.</p>
+  <table>
+    <tr><th>Size</th><th>Actual $000</th><th>Predicted $000</th><th>Error $000</th></tr>
+    <tr><td>1700</td><td>250</td><td>250.625</td><td>-0.625</td></tr>
+    <tr><td>2300</td><td>345</td><td>339.732</td><td>5.268</td></tr>
+  </table>
+  <p>Test results:</p>
+  <ul>
+    <li>Test MAE ≈ $2,946</li>
+    <li>Test RMSE ≈ $3,751</li>
+    <li>Test R² ≈ 0.994</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>20. Why not use test set during model development?</h2>
+  <p>If you repeatedly choose models based on test performance, the test set becomes part of the development process.</p>
+  <div class="bad">Then test performance is no longer unbiased.</div>
+  <p>Correct usage:</p>
+  <pre>
+Train → learn
+Validation → select/tune
+Test → final report
+  </pre>
+</section>
+
+<section class="slide">
+  <h2>21. Residual analysis</h2>
+  <p>A residual is:</p>
+  <div class="formula">Residual = Actual − Predicted</div>
+  <p>Good residual behavior:</p>
+  <ul>
+    <li>Centered around zero</li>
+    <li>No curve pattern</li>
+    <li>No funnel shape</li>
+    <li>No extreme outliers dominating the model</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>22. Why residuals matter</h2>
+  <p>Metrics may look good, but residuals can reveal problems.</p>
+  <table>
+    <tr><th>Residual Pattern</th><th>Possible Issue</th></tr>
+    <tr><td>Curved pattern</td><td>Relationship may be nonlinear</td></tr>
+    <tr><td>Funnel shape</td><td>Error variance changes with prediction size</td></tr>
+    <tr><td>Large isolated residuals</td><td>Outliers or data quality issue</td></tr>
+    <tr><td>Sequential pattern</td><td>Autocorrelation, common in time series</td></tr>
+  </table>
+</section>
+
+<section class="slide">
+  <h2>23. Where adjusted R² fits</h2>
+  <p>R² often increases when you add features, even weak features.</p>
+  <p>Adjusted R² penalizes unnecessary features.</p>
+  <table>
+    <tr><th>Model</th><th>Features</th><th>R²</th><th>Adjusted R²</th></tr>
+    <tr><td>A</td><td>Size</td><td>0.990</td><td>0.988</td></tr>
+    <tr><td>B</td><td>Size + 20 random columns</td><td>0.995</td><td>0.910</td></tr>
+  </table>
+  <p>Model B has higher R² but worse adjusted R². It may be unnecessarily complex.</p>
+</section>
+
+<section class="slide">
+  <h2>24. Now introduce regularization</h2>
+  <p>Regularization is used when the model is too flexible or coefficients become too large.</p>
+  <div class="formula">Regularized Objective = Prediction Error + Penalty for Large Coefficients</div>
+  <p>It helps reduce overfitting by keeping the model simpler.</p>
+</section>
+
+<section class="slide">
+  <h2>25. Ordinary regression vs regularized regression</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Ordinary Linear Regression</h3>
+      <p>Only minimizes prediction error.</p>
+      <pre>minimize SSE</pre>
+      <p>Coefficients can become large and unstable.</p>
+    </div>
+    <div class="card">
+      <h3>Regularized Regression</h3>
+      <p>Minimizes prediction error plus penalty.</p>
+      <pre>minimize SSE + penalty</pre>
+      <p>Coefficients are controlled.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>26. Ridge Regression</h2>
+  <p>Ridge uses L2 regularization.</p>
+  <div class="formula">Loss = SSE + λΣβ²</div>
+  <p>What it does:</p>
+  <ul>
+    <li>Shrinks coefficients toward zero</li>
+    <li>Usually does not make them exactly zero</li>
+    <li>Works well when features are correlated</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>27. Lasso Regression</h2>
+  <p>Lasso uses L1 regularization.</p>
+  <div class="formula">Loss = SSE + λΣ|β|</div>
+  <p>What it does:</p>
+  <ul>
+    <li>Shrinks coefficients</li>
+    <li>Can make some coefficients exactly zero</li>
+    <li>Useful for feature selection</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>28. Elastic Net</h2>
+  <p>Elastic Net combines Ridge and Lasso.</p>
+  <div class="formula">Loss = SSE + λ₁Σ|β| + λ₂Σβ²</div>
+  <p>Use it when:</p>
+  <ul>
+    <li>You have many features</li>
+    <li>Some features are correlated</li>
+    <li>You want both stability and feature selection</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>29. How validation chooses regularization strength</h2>
+  <p>λ controls how strongly coefficients are penalized.</p>
+  <table>
+    <tr><th>λ</th><th>Training RMSE</th><th>Validation RMSE</th><th>Interpretation</th></tr>
+    <tr><td>0</td><td>1.0</td><td>30.0</td><td>Overfit</td></tr>
+    <tr><td>0.1</td><td>3.0</td><td>12.0</td><td>Better</td></tr>
+    <tr><td>1.0</td><td>4.2</td><td>4.5</td><td>Best</td></tr>
+    <tr><td>10.0</td><td>20.0</td><td>21.0</td><td>Underfit</td></tr>
+  </table>
+  <p>Select λ = 1.0 because validation RMSE is lowest.</p>
+</section>
+
+<section class="slide">
+  <h2>30. When should students use regularization?</h2>
+  <ul>
+    <li>When train performance is much better than validation performance</li>
+    <li>When there are many features</li>
+    <li>When features are highly correlated</li>
+    <li>When coefficients are unstable or unusually large</li>
+    <li>When the model performs poorly on new data</li>
+  </ul>
+  <div class="note">
+    For production ML, regularization is often a default starting point rather than an optional advanced technique.
+  </div>
+</section>
+
+<section class="slide">
+  <h2>31. Bias-variance tradeoff</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>No regularization</h3>
+      <ul>
+        <li>Low bias</li>
+        <li>High variance</li>
+        <li>Can overfit</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Too much regularization</h3>
+      <ul>
+        <li>High bias</li>
+        <li>Low variance</li>
+        <li>Can underfit</li>
+      </ul>
+    </div>
+  </div>
+  <p class="big center">Goal: find the middle point where validation error is lowest.</p>
+</section>
+
+<section class="slide">
+  <h2>32. End-to-end classroom workflow</h2>
+  <pre>
+1. Prepare dataset
+2. Split into train, validation, test
+3. Train model on train data
+4. Freeze model coefficients
+5. Predict on validation data
+6. Calculate MAE, RMSE, R², adjusted R²
+7. Compare models and regularization settings
+8. Select best model
+9. Evaluate final model once on test data
+10. Review residuals and business reasonableness
+  </pre>
+</section>
+
+<section class="slide">
+  <h2>33. Student mental model</h2>
+  <div class="flow">
+    Training teaches the model.<br><br>
+    Validation coaches the model development process.<br><br>
+    Testing grades the final model.
+  </div>
+  <p>Validation does not change coefficients directly. It tells us whether our modeling choices are working.</p>
+</section>
+
+<section class="slide">
+  <h2>34. Final Takeaways</h2>
+  <ul>
+    <li>Linear regression learns coefficients from training data.</li>
+    <li>Validation starts after training and uses unseen data.</li>
+    <li>MAE explains average error in business units.</li>
+    <li>RMSE highlights large mistakes.</li>
+    <li>R² measures improvement over a baseline average prediction.</li>
+    <li>Adjusted R² helps compare models with different numbers of features.</li>
+    <li>Regularization reduces overfitting by penalizing large coefficients.</li>
+    <li>Ridge shrinks; Lasso selects; Elastic Net combines both.</li>
+  </ul>
+</section>
+
+</body>
+</html>
