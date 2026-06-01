@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hypothesis Testing Masterclass — Linear Regression</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,600;0,700;1,300;1,600&family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+:root {
+  --bg:#07080f; --s1:#0f1018; --s2:#171824; --s3:#1f2030;
+  --bor:rgba(255,255,255,0.06); --bor2:rgba(255,255,255,0.12);
+  --a1:#e8614f; --a2:#f5a97c; --a3:#fff0e6;
+  --teal:#3ecfb2; --teal2:#a7f3e2;
+  --blue:#5b9cf5; --blue2:#b8d6ff;
+  --pur:#9f7aea; --pur2:#d4b8ff;
+  --grn:#4bd49a; --grn2:#b8f0d4;
+  --ylw:#f5c842; --ylw2:#fdeeb8;
+  --red:#f47070; --red2:#fbbcbc;
+  --text:#eeedf8; --sub:#a0a0b8; --muted:#5e5e78;
+  --serif:'Crimson Pro',serif;
+  --sans:'Space Grotesk',sans-serif;
+  --mono:'Fira Code',monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
+
+/* ══ HEADER ══ */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 28px;background:var(--s1);
+  border-bottom:1px solid var(--bor);flex-shrink:0;
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.badge{
+  font-family:var(--mono);font-size:10px;font-weight:500;
+  color:var(--a1);border:1px solid rgba(232,97,79,.35);
+  padding:3px 10px;border-radius:3px;letter-spacing:.08em;
+}
+.h-title{font-family:var(--serif);font-size:14px;color:var(--a2);font-style:italic;}
+.nav{display:flex;align-items:center;gap:8px;}
+.nbtn{
+  background:transparent;border:1px solid var(--bor2);color:var(--sub);
+  font-family:var(--sans);font-size:11px;padding:5px 14px;border-radius:4px;
+  cursor:pointer;transition:all .2s;font-weight:500;
+}
+.nbtn:hover{border-color:var(--a1);color:var(--a2);}
+.nbtn.go{background:var(--a1);border-color:var(--a1);color:#fff;}
+.nbtn.go:hover{opacity:.88;}
+.ctr{font-family:var(--mono);font-size:11px;color:var(--muted);min-width:52px;text-align:center;}
+
+/* ══ PROGRESS ══ */
+.prog{height:2px;background:var(--bor);flex-shrink:0;}
+.pf{height:100%;background:linear-gradient(90deg,var(--a1),var(--a2),var(--teal));transition:width .4s ease;}
+
+/* ══ SECTION TABS ══ */
+.tabs{
+  display:flex;overflow-x:auto;border-bottom:1px solid var(--bor);
+  background:var(--s1);flex-shrink:0;scrollbar-width:none;
+}
+.tab{
+  white-space:nowrap;font-size:10px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;padding:8px 18px;border:none;background:transparent;
+  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;
+  font-family:var(--sans);transition:all .2s;flex-shrink:0;
+}
+.tab:hover{color:var(--sub);}
+.tab.on{color:var(--a2);border-bottom-color:var(--a1);}
+
+/* ══ SLIDE AREA ══ */
+.sarea{flex:1;overflow:hidden;position:relative;}
+.slide{
+  position:absolute;inset:0;display:none;flex-direction:column;
+  justify-content:center;align-items:center;
+  padding:26px 60px;text-align:center;
+  animation:si .35s cubic-bezier(.22,.68,0,1.1);
+}
+.slide.on{display:flex;}
+@keyframes si{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══ TYPE SYSTEM ══ */
+.sec{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--mono);font-size:9.5px;color:var(--muted);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:11px;
+}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--a1);}
+h1.big{font-family:var(--serif);font-size:clamp(30px,4.5vw,58px);line-height:1.08;margin-bottom:10px;font-weight:700;}
+h2.mid{font-family:var(--serif);font-size:clamp(24px,3.6vw,46px);line-height:1.1;margin-bottom:10px;font-weight:600;}
+.sub{font-size:clamp(12px,1.4vw,14.5px);color:var(--sub);max-width:740px;line-height:1.8;}
+.hl{color:var(--a2);font-style:italic;}
+.tl{color:var(--teal);}
+.bl{color:var(--blue);}
+.pl{color:var(--pur);}
+.gl{color:var(--grn);}
+.yl{color:var(--ylw);}
+.rl{color:var(--red);}
+
+/* ══ CARDS ══ */
+.grid{display:grid;gap:11px;width:100%;max-width:960px;margin-top:14px;}
+.g2{grid-template-columns:1fr 1fr;}
+.g3{grid-template-columns:1fr 1fr 1fr;}
+.g4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.card{
+  background:var(--s2);border:1px solid var(--bor);border-radius:8px;
+  padding:14px 16px;text-align:left;transition:border-color .2s;
+}
+.card:hover{border-color:var(--bor2);}
+.card.a{border-color:rgba(232,97,79,.5);background:rgba(232,97,79,.06);}
+.card.t{border-color:rgba(62,207,178,.45);background:rgba(62,207,178,.06);}
+.card.b{border-color:rgba(91,156,245,.45);background:rgba(91,156,245,.06);}
+.card.p{border-color:rgba(159,122,234,.45);background:rgba(159,122,234,.06);}
+.card.g{border-color:rgba(75,212,154,.45);background:rgba(75,212,154,.06);}
+.card.y{border-color:rgba(245,200,66,.45);background:rgba(245,200,66,.06);}
+.card.r{border-color:rgba(244,112,112,.45);background:rgba(244,112,112,.06);}
+.card.dim{opacity:.6;}
+.ct{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:5px;}
+.cb{font-size:11px;color:var(--sub);line-height:1.72;}
+
+/* ══ FORMULA ══ */
+.fbox{
+  background:var(--s2);border:1px solid var(--a1);border-radius:7px;
+  padding:11px 20px;font-family:var(--mono);color:var(--a2);
+  font-size:clamp(12px,1.6vw,18px);max-width:720px;margin:9px auto;
+}
+.fbox.sm{font-size:clamp(11px,1.2vw,14px);}
+.fbox.tl{border-color:var(--teal);color:var(--teal);}
+.fbox.bl{border-color:var(--blue);color:var(--blue);}
+.fbox.grn{border-color:var(--grn);color:var(--grn);}
+
+/* ══ STEP LIST ══ */
+.steps{list-style:none;max-width:840px;width:100%;margin-top:12px;text-align:left;}
+.steps li{display:flex;gap:13px;padding:10px 0;border-bottom:1px solid var(--bor);align-items:flex-start;}
+.steps li:last-child{border-bottom:none;}
+.sn{
+  min-width:30px;height:30px;border-radius:6px;
+  background:rgba(232,97,79,.18);color:var(--a1);
+  font-size:11px;font-weight:700;display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;
+  font-family:var(--mono);border:1px solid rgba(232,97,79,.25);
+}
+.sn.g{background:rgba(75,212,154,.18);color:var(--grn);border-color:rgba(75,212,154,.25);}
+.sn.t{background:rgba(62,207,178,.18);color:var(--teal);border-color:rgba(62,207,178,.25);}
+.sn.b{background:rgba(91,156,245,.18);color:var(--blue);border-color:rgba(91,156,245,.25);}
+.st{font-weight:600;color:var(--text);font-size:12.5px;}
+.sd{font-size:11px;color:var(--sub);margin-top:3px;line-height:1.68;}
+code{font-family:var(--mono);color:var(--a2);font-size:10.5px;background:var(--s3);padding:1px 6px;border-radius:3px;}
+
+/* ══ TWO-COL ══ */
+.twoc{display:flex;gap:14px;max-width:960px;width:100%;margin-top:13px;align-items:flex-start;}
+.cl{flex:1;}.cr{flex:1;}
+
+/* ══ TABLE ══ */
+.twrap{max-width:920px;width:100%;margin-top:12px;border-radius:8px;overflow:hidden;border:1px solid var(--bor);}
+table{width:100%;border-collapse:collapse;}
+thead{background:rgba(232,97,79,.14);}
+thead th{padding:9px 12px;font-weight:600;color:var(--a2);text-align:left;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);}
+tbody tr{border-top:1px solid var(--bor);}
+tbody tr:hover{background:rgba(255,255,255,.02);}
+td{padding:8px 12px;color:var(--sub);font-size:11px;}
+td:first-child{color:var(--text);font-weight:500;}
+.tc-g{color:var(--grn)!important;font-weight:600;}
+.tc-r{color:var(--red)!important;font-weight:600;}
+.tc-y{color:var(--ylw)!important;font-weight:600;}
+.tc-b{color:var(--blue)!important;}
+.tc-t{color:var(--teal)!important;}
+tfoot td{background:rgba(232,97,79,.08);color:var(--a2);font-weight:600;font-size:11px;}
+
+/* ══ CALLOUT ══ */
+.callout{
+  border-radius:0 8px 8px 0;padding:11px 16px;
+  font-size:11px;color:var(--sub);line-height:1.75;
+  text-align:left;margin-top:10px;max-width:940px;width:100%;
+  border-left:3px solid var(--a1);background:var(--s2);
+}
+.callout b{color:var(--a2);}
+.callout.tl{border-left-color:var(--teal);}
+.callout.tl b{color:var(--teal);}
+.callout.bl{border-left-color:var(--blue);}
+.callout.bl b{color:var(--blue);}
+.callout.grn{border-left-color:var(--grn);}
+.callout.grn b{color:var(--grn);}
+
+/* ══ CANVAS ══ */
+canvas{border-radius:8px;background:var(--s2);border:1px solid var(--bor);display:block;}
+
+/* ══ CONTROLS ══ */
+.ctrl-panel{display:flex;flex-direction:column;gap:10px;min-width:190px;}
+.ctrl-row{display:flex;flex-direction:column;gap:3px;}
+.clbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-family:var(--mono);}
+.crow{display:flex;align-items:center;gap:9px;}
+input[type=range]{accent-color:var(--a1);cursor:pointer;width:150px;}
+.cval{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--a2);min-width:42px;}
+.cbtn{
+  background:var(--a1);border:none;color:#fff;padding:7px 16px;border-radius:5px;
+  font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;
+  transition:opacity .2s;margin-top:4px;
+}
+.cbtn:hover{opacity:.85;}
+.cbtn.sec{background:transparent;border:1px solid var(--bor2);color:var(--sub);}
+.cbtn.sec:hover{border-color:var(--a1);color:var(--a2);}
+
+/* ══ STAT CARDS ══ */
+.stats{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin-top:10px;}
+.stat-c{
+  background:var(--s2);border:1px solid var(--bor);border-radius:7px;
+  padding:8px 14px;text-align:center;min-width:100px;
+  transition:border-color .3s;
+}
+.stat-l{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;}
+.stat-v{font-family:var(--mono);font-size:17px;font-weight:600;margin-top:3px;}
+
+/* ══ FLOWCHART ══ */
+.flow{display:flex;align-items:center;gap:6px;max-width:940px;width:100%;margin-top:14px;flex-wrap:wrap;justify-content:center;}
+.fnode{
+  background:var(--s2);border:1px solid var(--bor2);border-radius:7px;
+  padding:10px 14px;text-align:center;flex:1;min-width:90px;
+}
+.fnode.a{border-color:var(--a1);background:rgba(232,97,79,.08);}
+.fnode.t{border-color:var(--teal);background:rgba(62,207,178,.07);}
+.fnode.b{border-color:var(--blue);background:rgba(91,156,245,.07);}
+.fnode.g{border-color:var(--grn);background:rgba(75,212,154,.07);}
+.fnode.y{border-color:var(--ylw);background:rgba(245,200,66,.07);}
+.fn-t{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px;}
+.fn-v{font-family:var(--mono);font-size:14px;font-weight:600;}
+.fn-l{font-size:9.5px;color:var(--muted);margin-top:2px;}
+.farr{font-size:20px;color:var(--muted);flex-shrink:0;}
+
+/* ══ VERDICT BADGE ══ */
+.verdict{
+  display:inline-flex;align-items:center;gap:8px;padding:7px 18px;
+  border-radius:6px;font-size:12px;font-weight:700;margin-top:8px;
+  font-family:var(--mono);letter-spacing:.05em;
+}
+.verdict.rej{background:rgba(75,212,154,.15);color:var(--grn);border:1px solid rgba(75,212,154,.4);}
+.verdict.fail{background:rgba(232,97,79,.12);color:var(--red);border:1px solid rgba(232,97,79,.3);}
+
+/* ══ QUIZ ══ */
+.qwrap{max-width:900px;width:100%;margin-top:12px;}
+.qbox{background:var(--s2);border:1px solid var(--bor);border-radius:8px;padding:16px;margin-bottom:10px;text-align:left;}
+.qq{font-size:13px;font-weight:600;margin-bottom:10px;line-height:1.5;}
+.qopts{display:flex;flex-wrap:wrap;gap:7px;}
+.qo{
+  background:var(--s3);border:1px solid var(--bor);color:var(--sub);
+  padding:6px 13px;border-radius:4px;font-size:11px;cursor:pointer;
+  font-family:var(--sans);font-weight:500;transition:all .2s;
+}
+.qo:hover{border-color:var(--a1);color:var(--text);}
+.qo.ok{border-color:var(--grn);background:rgba(75,212,154,.1);color:var(--grn);}
+.qo.no{border-color:var(--red);background:rgba(244,112,112,.1);color:var(--red);}
+.qfb{font-size:11px;color:var(--sub);margin-top:9px;line-height:1.65;min-height:16px;}
+
+/* ══ THUMB NAV ══ */
+.tnav{
+  display:flex;gap:4px;padding:6px 22px;
+  border-top:1px solid var(--bor);background:var(--s1);
+  flex-shrink:0;overflow-x:auto;scrollbar-width:none;
+}
+.thumb{
+  min-width:52px;height:25px;border-radius:4px;border:1px solid var(--bor);
+  background:var(--s2);cursor:pointer;display:flex;align-items:center;
+  justify-content:center;font-size:9px;color:var(--muted);flex-shrink:0;
+  transition:all .15s;white-space:nowrap;padding:0 5px;font-family:var(--sans);
+}
+.thumb.on{border-color:var(--a1);color:var(--a2);background:rgba(232,97,79,.12);}
+.thumb:hover:not(.on){border-color:var(--bor2);color:var(--sub);}
+.kb-hint{position:fixed;bottom:42px;right:14px;font-size:9px;color:var(--muted);display:flex;gap:5px;z-index:99;}
+.kb{background:var(--s2);border:1px solid var(--bor);border-radius:3px;padding:2px 6px;font-family:var(--mono);}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <span class="badge">HT · MASTERCLASS</span>
+    <span class="h-title">Hypothesis Testing in Linear Regression</span>
+  </div>
+  <div class="nav">
+    <button class="nbtn" onclick="prev()">&#8592; Prev</button>
+    <span class="ctr" id="ctr">01/18</span>
+    <button class="nbtn go" onclick="next()">Next &#8594;</button>
+  </div>
+</header>
+<div class="prog"><div class="pf" id="pf"></div></div>
+<div class="tabs" id="tabs"></div>
+<div class="sarea" id="sarea"></div>
+<div class="tnav" id="tnav"></div>
+<div class="kb-hint"><span class="kb">&#8592;</span><span>prev</span><span class="kb">&#8594;</span><span>next</span><span class="kb">F</span><span>full</span></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// SLIDE DATA
+// ═══════════════════════════════════════════════════════════
+const SECTIONS=[
+  {label:"Why Testing?",     slides:[0,1,2]},
+  {label:"The Framework",   slides:[3,4,5]},
+  {label:"Standard Error",  slides:[6,7]},
+  {label:"t & p-value",     slides:[8,9,10]},
+  {label:"Confidence Intervals", slides:[11]},
+  {label:"F-Statistic",     slides:[12,13]},
+  {label:"Live Labs",       slides:[14,15]},
+  {label:"Pitfalls",        slides:[16]},
+  {label:"Quiz",            slides:[17]},
+];
+
+const SLIDES_HTML=[
+
+// ──────────────────────────────────── 0 · COVER
+`<div class="sec"><span class="dot"></span>Hypothesis Testing Masterclass</div>
+<h1 class="big">Why Does the Slope<br><span class="hl">Actually Matter?</span></h1>
+<p class="sub" style="margin-top:8px;">You fitted a regression line. The slope is 0.047. But did TV spending <em>really</em> drive sales — or did you just get a lucky sample? Hypothesis testing is the formal answer to that question, applied throughout every stage of linear regression.</p>
+<div class="flow" style="margin-top:20px;">
+  <div class="fnode a"><div class="fn-t">Fit OLS</div><div class="fn-v" style="color:var(--a2)">&#946;&#770;&#8321;</div><div class="fn-l">From data</div></div>
+  <div class="farr">&#8594;</div>
+  <div class="fnode"><div class="fn-t">Measure noise</div><div class="fn-v" style="color:var(--sub)">SE</div><div class="fn-l">Precision</div></div>
+  <div class="farr">&#8594;</div>
+  <div class="fnode t"><div class="fn-t">Standardise</div><div class="fn-v" style="color:var(--teal)">t</div><div class="fn-l">Signal/noise</div></div>
+  <div class="farr">&#8594;</div>
+  <div class="fnode b"><div class="fn-t">Probability</div><div class="fn-v" style="color:var(--blue)">p</div><div class="fn-l">Evidence</div></div>
+  <div class="farr">&#8594;</div>
+  <div class="fnode g"><div class="fn-t">Range</div><div class="fn-v" style="color:var(--grn)">CI</div><div class="fn-l">Uncertainty</div></div>
+  <div class="farr">&#8594;</div>
+  <div class="fnode y"><div class="fn-t">Overall</div><div class="fn-v" style="color:var(--ylw)">F</div><div class="fn-l">All predictors</div></div>
+</div>
+<div class="callout" style="margin-top:14px;">
+  <b>Real-world stakes:</b> A pharmaceutical company runs a regression: drug dose predicts recovery time, &#946;&#770; = &#8722;2.1 days/mg. Should they change the treatment protocol? Without hypothesis testing you have no idea if &#8722;2.1 is real or noise. Testing turns a number into a decision.
+</div>`,
+
+// ──────────────────────────────────── 1 · WHY TESTING IS NEEDED
+`<div class="sec"><span class="dot"></span>Why Testing? &#183; The Sampling Problem</div>
+<h2 class="mid">The Fundamental Problem:<br><span class="hl">Every Sample Gives a Different Line</span></h2>
+<div class="twoc" style="max-width:900px;margin-top:12px;">
+  <div class="cl">
+    <div class="card a" style="margin-bottom:10px;">
+      <div class="ct">The world has ONE true line</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">There is a single true population relationship: <strong style="color:var(--text)">Y = &#946;&#8320; + &#946;&#8321;X + &#949;</strong>. The true slope &#946;&#8321; is a fixed, unknown number. We will never know it exactly.</div>
+    </div>
+    <div class="card">
+      <div class="ct">But we observe ONE sample</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">Our data is just one of infinitely many possible samples. We compute &#946;&#770;&#8321; from it. A different sample gives a different &#946;&#770;&#8321;. Advertising: if 200 different markets were surveyed, we might get &#946;&#770;&#8321; = 0.039 or 0.055 instead of 0.047.</div>
+    </div>
+  </div>
+  <div class="cr">
+    <canvas id="sampCanvas" width="400" height="270"></canvas>
+    <p style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center;">Each blue line = one possible sample. Red = true population line &#946;&#8321; = 3. Click to resample.</p>
+    <button class="cbtn" style="width:100%;margin-top:6px;" onclick="drawSamplingDemo()">&#8635; Draw new samples</button>
+  </div>
+</div>
+<div class="callout tl" style="margin-top:10px;">
+  <b>The core question:</b> Given that &#946;&#770;&#8321; fluctuates from sample to sample, how do we know if the one we observed is evidence of a real relationship, or just chance variation around &#946;&#8321; = 0? That is exactly what hypothesis testing answers.
+</div>`,
+
+// ──────────────────────────────────── 2 · THREE DATASETS THAT NEED TESTING
+`<div class="sec"><span class="dot"></span>Why Testing? &#183; Real Stakes</div>
+<h2 class="mid">Three Scenarios Where<br><span class="hl">Testing Changes the Decision</span></h2>
+<div class="grid g3" style="max-width:920px;">
+  <div class="card t">
+    <div class="ct tl">&#128200; Advertising (ISLP Ch3)</div>
+    <div class="cb" style="margin-top:6px;line-height:1.8;">
+      TV &#8594; Sales: &#946;&#770;&#8321; = 0.047, <strong style="color:var(--grn)">p &lt; 0.0001</strong><br>
+      Newspaper &#8594; Sales: &#946;&#770;&#8321; = 0.055, <strong style="color:var(--ylw)">p = 0.001</strong><br>
+      Newspaper (multiple reg): &#946;&#770;&#8321; = &#8722;0.001, <strong style="color:var(--red)">p = 0.86</strong><br><br>
+      <strong style="color:var(--text)">Decision changed:</strong> Testing reveals newspaper spending is NOT a true driver — it was a proxy for markets that spend heavily on TV and radio.
+    </div>
+  </div>
+  <div class="card b">
+    <div class="ct bl">&#128138; Salary Gender Gap Study</div>
+    <div class="cb" style="margin-top:6px;line-height:1.8;">
+      Y = salary, X = gender (0/1)<br>
+      &#946;&#770;&#8321; = +$8,400 (men earn more)<br>
+      n = 50: <strong style="color:var(--ylw)">p = 0.12</strong> — inconclusive<br>
+      n = 500: <strong style="color:var(--grn)">p = 0.003</strong> — significant<br><br>
+      <strong style="color:var(--text)">Lesson:</strong> Same effect size, opposite decisions. Testing accounts for sample size — the same slope means very different things with 50 vs 500 observations.
+    </div>
+  </div>
+  <div class="card p">
+    <div class="ct pl">&#128138; Drug Dosage &#8594; Recovery</div>
+    <div class="cb" style="margin-top:6px;line-height:1.8;">
+      Y = recovery days, X = dose (mg)<br>
+      &#946;&#770;&#8321; = &#8722;2.1 days/mg<br>
+      <strong style="color:var(--grn)">p = 0.0003</strong><br><br>
+      95% CI: [&#8722;3.2, &#8722;1.0]<br><br>
+      <strong style="color:var(--text)">Decision:</strong> CI excludes zero &#8594; reject H&#8320;. The drug works. CI provides the practical range — not just "significant" but "between 1 and 3.2 days faster."
+    </div>
+  </div>
+</div>
+<div class="callout" style="margin-top:10px;">
+  <b>Key insight from all three:</b> The coefficient estimate alone is never enough. You need: (1) How precise is the estimate? (2) Could this be chance? (3) What is the plausible range? Standard error, p-value, and confidence interval answer these three questions.
+</div>`,
+
+// ──────────────────────────────────── 3 · HYPOTHESIS FRAMEWORK
+`<div class="sec"><span class="dot"></span>The Framework &#183; H&#8320; and H&#8321;</div>
+<h2 class="mid">Setting Up the Hypotheses:<br><span class="hl">The Logic of Proof by Contradiction</span></h2>
+<p class="sub" style="margin-bottom:4px;">Statistical hypothesis testing works by assuming the opposite of what you want to show, then measuring how surprised the data makes you.</p>
+<div class="twoc" style="max-width:900px;margin-top:12px;">
+  <div class="cl">
+    <ul class="steps" style="margin-top:0;">
+      <li><div class="sn">H&#8320;</div><div>
+        <div class="st">Null Hypothesis — the default</div>
+        <div class="sd"><strong>H&#8320;: &#946;&#8321; = 0</strong> — "X has NO linear relationship with Y." This is what we assume to be true until the data convinces us otherwise. Like "innocent until proven guilty." We try to reject this.</div>
+      </div></li>
+      <li><div class="sn">H&#8321;</div><div>
+        <div class="st">Alternative Hypothesis — what we want to show</div>
+        <div class="sd"><strong>H&#8321;: &#946;&#8321; &#8800; 0</strong> — "X DOES have a linear relationship with Y." This is a two-sided test. We could also test one-sided: H&#8321;: &#946;&#8321; &gt; 0 (positive effect only).</div>
+      </div></li>
+      <li><div class="sn t">&#9654;</div><div>
+        <div class="st">Why we default to H&#8320;, not H&#8321;</div>
+        <div class="sd">Scientific conservatism: it is easier to mistakenly find effects that do not exist (false positives) than to miss them (false negatives) when we have small samples. Defaulting to "no effect" protects against over-claiming. The burden of proof is on the data.</div>
+      </div></li>
+      <li><div class="sn g">&#10003;</div><div>
+        <div class="st">What "reject H&#8320;" means</div>
+        <div class="sd">The observed data would be very unlikely if H&#8320; were true — so unlikely that we prefer to believe H&#8320; is wrong. It does NOT mean &#946;&#8321; &#8800; 0 with certainty; it means we have strong evidence against &#946;&#8321; = 0.</div>
+      </div></li>
+    </ul>
+  </div>
+  <div class="cr">
+    <div class="card" style="margin-bottom:10px;">
+      <div class="ct">Two types of errors</div>
+      <div style="margin-top:8px;">
+        <table style="width:100%;font-size:10.5px;">
+          <thead><tr><th></th><th>H&#8320; true</th><th>H&#8320; false</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Reject H&#8320;</strong></td><td class="tc-r">Type I error (&#945;)<br>False positive</td><td class="tc-g">Correct &#10003;</td></tr>
+            <tr><td><strong>Fail to reject</strong></td><td class="tc-g">Correct &#10003;</td><td class="tc-y">Type II error (&#946;)<br>False negative</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card a">
+      <div class="ct">&#945; = 0.05 — what it means</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">If H&#8320; is true, we will incorrectly reject it 5% of the time just by chance. We accept this 5% false positive rate as the price of doing science with samples. For medical/safety decisions, use &#945; = 0.01 or 0.001 instead.</div>
+    </div>
+  </div>
+</div>`,
+
+// ──────────────────────────────────── 4 · POPULATION VS SAMPLE LINE
+`<div class="sec"><span class="dot"></span>The Framework &#183; Population vs Sample</div>
+<h2 class="mid">Population Line vs Sample Line:<br><span class="hl">What We Know vs What We Estimate</span></h2>
+<div class="grid g2" style="max-width:880px;">
+  <div class="card t">
+    <div class="ct tl">Population regression line (unknown)</div>
+    <div class="cb" style="margin-top:5px;line-height:1.8;">
+      <code>Y = &#946;&#8320; + &#946;&#8321;X + &#949;</code><br><br>
+      &#946;&#8320;, &#946;&#8321; are <strong style="color:var(--text)">fixed, true, unknown constants</strong>. They describe the relationship in the entire population — all possible markets, patients, or customers — not just our sample.<br><br>
+      &#949; is the irreducible error: random variation from unmeasured factors. Even if we knew &#946;&#8320; and &#946;&#8321; perfectly, &#949; means we cannot predict Y exactly.
+    </div>
+  </div>
+  <div class="card a">
+    <div class="ct rl">Sample regression line (estimated)</div>
+    <div class="cb" style="margin-top:5px;line-height:1.8;">
+      <code>&#374; = &#946;&#770;&#8320; + &#946;&#770;&#8321;X</code><br><br>
+      &#946;&#770;&#8320;, &#946;&#770;&#8321; are <strong style="color:var(--text)">random variables</strong> — they change every time we draw a new sample. OLS minimises RSS to get the best estimates, but they are still estimates.<br><br>
+      The "hat" (^) always signals an estimate. Hypothesis testing asks: how confident are we that &#946;&#770;&#8321; reflects &#946;&#8321; rather than sampling luck?
+    </div>
+  </div>
+</div>
+<div class="twrap" style="margin-top:12px;">
+  <table>
+    <thead><tr><th>Quantity</th><th>Symbol</th><th>Known?</th><th>What it represents</th></tr></thead>
+    <tbody>
+      <tr><td>True slope</td><td><code>&#946;&#8321;</code></td><td class="tc-r">Never known</td><td>The real effect of X on Y in the population</td></tr>
+      <tr><td>Estimated slope</td><td><code>&#946;&#770;&#8321;</code></td><td class="tc-g">Computed from data</td><td>Our best guess at &#946;&#8321; from this sample</td></tr>
+      <tr><td>True error SD</td><td><code>&#963;</code></td><td class="tc-r">Never known</td><td>How noisy Y is around the true line</td></tr>
+      <tr><td>Estimated error SD</td><td><code>RSE</code></td><td class="tc-g">&#8730;(RSS/(n&#8722;2))</td><td>Our estimate of how noisy Y is</td></tr>
+      <tr><td>Standard error of &#946;&#770;&#8321;</td><td><code>SE(&#946;&#770;&#8321;)</code></td><td class="tc-g">Computed from data</td><td>How much &#946;&#770;&#8321; varies across different samples</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="callout tl" style="margin-top:10px;"><b>Analogy from statistics:</b> Using &#946;&#770;&#8321; to estimate &#946;&#8321; is exactly like using the sample mean &#7869; to estimate the population mean &#956;. Just as &#7869; is unbiased and has SE = &#963;/&#8730;n, &#946;&#770;&#8321; is unbiased and has its own SE. The same logic of inference applies.</div>`,
+
+// ──────────────────────────────────── 5 · THE FULL TESTING WORKFLOW
+`<div class="sec"><span class="dot"></span>The Framework &#183; Workflow</div>
+<h2 class="mid">The 6-Step Testing Workflow<br><span class="hl">Applied to Every Regression</span></h2>
+<ul class="steps">
+  <li><div class="sn">1</div><div>
+    <div class="st">State the hypotheses before seeing the data</div>
+    <div class="sd"><strong>H&#8320;: &#946;&#8321; = 0</strong> (no linear relationship). <strong>H&#8321;: &#946;&#8321; &#8800; 0</strong> (some relationship exists). Choosing hypotheses after seeing data leads to "p-hacking" — a major issue in reproducibility crises in science.</div>
+  </div></li>
+  <li><div class="sn">2</div><div>
+    <div class="st">Fit OLS — obtain &#946;&#770;&#8321;</div>
+    <div class="sd">Minimise RSS = &#8721;(y&#7522;&#8722;&#374;&#7522;)&#178;. Get &#946;&#770;&#8321; = &#8721;(x&#7522;&#8722;x&#772;)(y&#7522;&#8722;&#7769;) / &#8721;(x&#7522;&#8722;x&#772;)&#178;. This is our estimate of the true slope.</div>
+  </div></li>
+  <li><div class="sn t">3</div><div>
+    <div class="st">Compute SE(&#946;&#770;&#8321;) — measure the precision</div>
+    <div class="sd">SE(&#946;&#770;&#8321;) = RSE / &#8730;&#8721;(x&#7522;&#8722;x&#772;)&#178;. Quantifies how much &#946;&#770;&#8321; would vary across repeated samples. Shrinks with larger n and more spread in X.</div>
+  </div></li>
+  <li><div class="sn t">4</div><div>
+    <div class="st">Compute t = &#946;&#770;&#8321; / SE(&#946;&#770;&#8321;) — the signal-to-noise ratio</div>
+    <div class="sd">How many standard errors is &#946;&#770;&#8321; away from zero? Under H&#8320;, t follows a t-distribution with n&#8722;2 degrees of freedom. Large |t| &#8594; surprising under H&#8320;.</div>
+  </div></li>
+  <li><div class="sn b">5</div><div>
+    <div class="st">Compute p-value = P(|T| &#8805; |t| | H&#8320; true)</div>
+    <div class="sd">How likely is a t-statistic at least this extreme if H&#8320; is true? p &lt; 0.05 &#8594; reject H&#8320;. Report the actual p-value, not just "significant/not."</div>
+  </div></li>
+  <li><div class="sn g">6</div><div>
+    <div class="st">Compute 95% CI = &#946;&#770;&#8321; &#177; 2 &#183; SE(&#946;&#770;&#8321;) — quantify uncertainty</div>
+    <div class="sd">The plausible range for &#946;&#8321;. If CI excludes zero &#8596; same conclusion as p &lt; 0.05. CI provides more information than p-value alone — it shows the effect size range.</div>
+  </div></li>
+</ul>`,
+
+// ──────────────────────────────────── 6 · STANDARD ERROR DEEP DIVE
+`<div class="sec"><span class="dot"></span>Standard Error &#183; Formula Breakdown</div>
+<h2 class="mid">Standard Error: The Ruler<br><span class="hl">for Measuring Estimation Precision</span></h2>
+<div class="fbox">SE(&#946;&#770;&#8321;)&#178; = &#963;&#178; / &#8721;&#7522;(x&#7522; &#8722; x&#772;)&#178;</div>
+<div class="grid g3" style="max-width:920px;margin-top:12px;">
+  <div class="card a">
+    <div class="ct">&#963;&#178; — noise in Y</div>
+    <div class="cb" style="margin-top:5px;line-height:1.8;">The variance of the irreducible error &#949;. How much Y varies around the true line after accounting for X. We never know &#963;&#178;, so we estimate it:<br><br>
+    <code>RSE = &#8730;(RSS/(n&#8722;2))</code><br><br>
+    Advertising: RSE = 3.26 thousand units. That is our &#963;&#770;.
+    </div>
+  </div>
+  <div class="card t">
+    <div class="ct tl">&#8721;(x&#7522;&#8722;x&#772;)&#178; — spread of X</div>
+    <div class="cb" style="margin-top:5px;line-height:1.8;">How spread out the X values are. More spread = better leverage to estimate the slope = smaller SE.<br><br>
+    Think of fitting a line through two points far apart vs two points close together. The far-apart points pin the slope down much more tightly.<br><br>
+    Wide range of X &#8594; smaller SE &#8594; more precise &#946;&#770;&#8321;.
+    </div>
+  </div>
+  <div class="card b">
+    <div class="ct bl">n — sample size</div>
+    <div class="cb" style="margin-top:5px;line-height:1.8;">SE shrinks as n grows. Doubling n halves &#963;&#178;/n (from the &#963;&#178; estimate). In general:<br><br>
+    <code>SE &#8733; 1/&#8730;n</code><br><br>
+    To halve SE, you need 4&#215; more data. This is why large samples detect small effects — SE shrinks to the point where even a tiny &#946;&#770;&#8321; is many SEs from zero.
+    </div>
+  </div>
+</div>
+<div class="callout" style="margin-top:11px;">
+  <b>Advertising example:</b> SE(&#946;&#770;&#8321;) = 0.0027 for TV. That means &#946;&#770;&#8321; = 0.0475 is 0.0475/0.0027 = <strong style="color:var(--a2)">17.6 standard errors from zero</strong>. Even accounting for sampling variability, a slope this large is extraordinarily unlikely under H&#8320;. This is why p &lt; 0.0001.
+</div>`,
+
+// ──────────────────────────────────── 7 · SE INTERACTIVE
+`<div class="sec"><span class="dot"></span>Standard Error &#183; Interactive Lab</div>
+<h2 class="mid" style="font-size:clamp(20px,3vw,36px);">Live Lab: How Sample Size, Noise,<br><span class="hl">and X-Spread Affect SE</span></h2>
+<div style="display:flex;gap:16px;max-width:940px;width:100%;margin-top:12px;align-items:flex-start;">
+  <div class="ctrl-panel">
+    <div class="ctrl-row"><span class="clbl">Noise &#963; (Y variability)</span>
+      <div class="crow"><input type="range" id="se_sigma" min="2" max="25" value="8" oninput="updateSE()"><span class="cval" id="sv_sigma">8</span></div>
+    </div>
+    <div class="ctrl-row"><span class="clbl">Sample size n</span>
+      <div class="crow"><input type="range" id="se_n" min="10" max="120" value="30" oninput="updateSE()"><span class="cval" id="sv_n">30</span></div>
+    </div>
+    <div class="ctrl-row"><span class="clbl">X spread (range)</span>
+      <div class="crow"><input type="range" id="se_xr" min="5" max="50" value="20" oninput="updateSE()"><span class="cval" id="sv_xr">20</span></div>
+    </div>
+    <button class="cbtn" onclick="updateSE()">&#8635; Resample</button>
+    <div class="stats" style="flex-direction:column;gap:7px;margin-top:6px;">
+      <div class="stat-c"><div class="stat-l">SE(&#946;&#770;&#8321;)</div><div class="stat-v" id="se_val" style="color:var(--a2)">&#8212;</div></div>
+      <div class="stat-c"><div class="stat-l">t-statistic</div><div class="stat-v" id="se_t" style="color:var(--teal)">&#8212;</div></div>
+      <div class="stat-c"><div class="stat-l">p-value</div><div class="stat-v" id="se_p" style="color:var(--ylw)">&#8212;</div></div>
+      <div class="stat-c" id="se_verdict"><div class="stat-l">Decision</div><div class="stat-v" id="se_dec" style="font-size:11px;color:var(--sub)">&#8212;</div></div>
+    </div>
+  </div>
+  <div style="flex:1;">
+    <canvas id="seCanvas" width="480" height="310"></canvas>
+    <p style="font-size:10px;color:var(--muted);margin-top:5px;text-align:center;">Blue dots = data. Red line = fitted OLS. Shaded band = 95% CI. True slope &#946;&#8321; = 2.</p>
+  </div>
+</div>`,
+
+// ──────────────────────────────────── 8 · t-STATISTIC
+`<div class="sec"><span class="dot"></span>t-statistic &#183; Signal-to-Noise</div>
+<h2 class="mid">The t-Statistic:<br><span class="hl">Measuring Signal Against Noise</span></h2>
+<div class="fbox">t = &#946;&#770;&#8321; &#247; SE(&#946;&#770;&#8321;)</div>
+<div class="twoc" style="max-width:900px;margin-top:12px;">
+  <div class="cl">
+    <div class="card a" style="margin-bottom:10px;">
+      <div class="ct">What the t-statistic measures</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">How many standard errors &#946;&#770;&#8321; sits away from zero. It converts &#946;&#770;&#8321; (which has units of Y/X) into a <strong style="color:var(--text)">dimensionless signal-to-noise ratio</strong> that can be compared against a universal reference distribution.<br><br>
+      &#183; t = 0: estimate exactly at zero<br>
+      &#183; t = 1: one SE from zero &#8594; weak evidence<br>
+      &#183; t = 2: two SEs &#8594; ~5% significance<br>
+      &#183; t = 3: three SEs &#8594; very strong evidence<br>
+      &#183; t = 17.67: Advertising TV &#8594; overwhelming
+      </div>
+    </div>
+    <div class="card t">
+      <div class="ct tl">Under H&#8320;, t follows a t-distribution</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">If &#946;&#8321; = 0 (null true), the random variable t = &#946;&#770;&#8321;/SE(&#946;&#770;&#8321;) follows a <strong style="color:var(--teal)">t-distribution with n&#8722;2 degrees of freedom</strong>.<br><br>
+      For n &gt; 30, the t-distribution is nearly identical to the standard normal (bell curve). The critical value for p = 0.05 is approximately &#177;1.96 (often rounded to &#177;2).
+      </div>
+    </div>
+  </div>
+  <div class="cr">
+    <canvas id="tDistCanvas" width="390" height="290"></canvas>
+    <p style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center;">t-distribution under H&#8320;. Blue = 5% critical region. Drag the slider to see the p-value change.</p>
+    <div class="ctrl-row" style="margin-top:8px;">
+      <span class="clbl">Observed t-value</span>
+      <div class="crow"><input type="range" id="t_slider" min="-5" max="5" value="2.5" step="0.1" oninput="drawTDist()"><span class="cval" id="t_sval">2.5</span></div>
+    </div>
+    <div class="stats" style="margin-top:8px;">
+      <div class="stat-c"><div class="stat-l">p-value</div><div class="stat-v" id="t_pval" style="color:var(--ylw)">&#8212;</div></div>
+      <div class="stat-c"><div class="stat-l">Conclusion</div><div class="stat-v" id="t_conc" style="font-size:11px;color:var(--sub)">&#8212;</div></div>
+    </div>
+  </div>
+</div>`,
+
+// ──────────────────────────────────── 9 · p-VALUE DEEP
+`<div class="sec"><span class="dot"></span>p-value &#183; Correct Interpretation</div>
+<h2 class="mid">The p-value: <span class="hl">Most Misunderstood Concept</span><br>in All of Statistics</h2>
+<div class="twoc" style="max-width:920px;margin-top:12px;">
+  <div class="cl">
+    <div class="card r" style="margin-bottom:10px;">
+      <div class="ct rl">&#10007; Five wrong interpretations (very common)</div>
+      <div class="cb" style="margin-top:5px;line-height:1.85;">
+        1. "p = 0.03 means 3% chance H&#8320; is true." <strong style="color:var(--red)">WRONG.</strong><br>
+        2. "p = 0.03 means 97% chance the result replicates." <strong style="color:var(--red)">WRONG.</strong><br>
+        3. "p &lt; 0.05 means the effect is large." <strong style="color:var(--red)">WRONG.</strong><br>
+        4. "p &gt; 0.05 means no effect." <strong style="color:var(--red)">WRONG.</strong><br>
+        5. "p is a measure of the effect's importance." <strong style="color:var(--red)">WRONG.</strong>
+      </div>
+    </div>
+    <div class="card g">
+      <div class="ct gl">&#10003; The correct definition</div>
+      <div class="cb" style="margin-top:5px;line-height:1.85;">
+        p = P(observing |t| &#8805; |t&#8320;&#98;&#115;| | H&#8320; is true)<br><br>
+        <strong style="color:var(--text)">In plain English:</strong> If there truly were no relationship (H&#8320;), how often would random sampling produce a slope as large as the one we observed?<br><br>
+        p = 0.03 means: if &#946;&#8321; = 0, we would get a t-statistic this extreme 3% of the time by chance.
+      </div>
+    </div>
+  </div>
+  <div class="cr">
+    <div class="card" style="margin-bottom:10px;">
+      <div class="ct">p-value strength scale</div>
+      <div style="margin-top:8px;">
+        <div style="background:rgba(75,212,154,.2);border-left:3px solid var(--grn);padding:6px 10px;border-radius:0 4px 4px 0;margin-bottom:5px;font-size:11px;"><span style="color:var(--grn);font-weight:600;">p &lt; 0.001</span> — overwhelming evidence, reject H&#8320; confidently</div>
+        <div style="background:rgba(91,156,245,.15);border-left:3px solid var(--blue);padding:6px 10px;border-radius:0 4px 4px 0;margin-bottom:5px;font-size:11px;"><span style="color:var(--blue);font-weight:600;">0.001 &#8211; 0.01</span> — strong evidence, almost always reject H&#8320;</div>
+        <div style="background:rgba(245,200,66,.12);border-left:3px solid var(--ylw);padding:6px 10px;border-radius:0 4px 4px 0;margin-bottom:5px;font-size:11px;"><span style="color:var(--ylw);font-weight:600;">0.01 &#8211; 0.05</span> — conventional significance threshold &#945; = 0.05</div>
+        <div style="background:rgba(244,112,112,.1);border-left:3px solid var(--red);padding:6px 10px;border-radius:0 4px 4px 0;font-size:11px;"><span style="color:var(--red);font-weight:600;">p &gt; 0.05</span> — fail to reject H&#8320;, insufficient evidence</div>
+      </div>
+    </div>
+    <div class="card a">
+      <div class="ct">Statistical vs practical significance</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">With n = 1,000,000: &#946;&#770;&#8321; = 0.0001 gives p &lt; 0.001. <strong style="color:var(--a2)">Statistically significant</strong> but <strong style="color:var(--red)">practically meaningless</strong>. Always report the coefficient AND the p-value AND the CI together.</div>
+    </div>
+  </div>
+</div>`,
+
+// ──────────────────────────────────── 10 · ADVERTISING WALKTHROUGH
+`<div class="sec"><span class="dot"></span>t &amp; p-value &#183; Complete Example</div>
+<h2 class="mid" style="font-size:clamp(20px,3vw,38px);">Complete Walkthrough: Advertising Dataset<br><span class="hl">Every Number Explained</span></h2>
+<div class="twrap">
+  <table>
+    <thead><tr><th>Predictor</th><th>&#946;&#770;ⱼ (coeff)</th><th>SE(&#946;&#770;ⱼ)</th><th>t = &#946;&#770;ⱼ/SE</th><th>p-value</th><th>95% CI</th><th>Decision</th></tr></thead>
+    <tbody>
+      <tr><td>Intercept</td><td>7.033</td><td>0.458</td><td class="tc-g">15.36</td><td class="tc-g">&lt; 0.0001</td><td>[6.13, 7.94]</td><td class="tc-g">&#10003; Reject H&#8320;</td></tr>
+      <tr><td>TV (simple)</td><td>0.0475</td><td>0.0027</td><td class="tc-g">17.67</td><td class="tc-g">&lt; 0.0001</td><td>[0.042, 0.053]</td><td class="tc-g">&#10003; Reject H&#8320;</td></tr>
+      <tr><td>Radio (simple)</td><td>0.203</td><td>0.020</td><td class="tc-g">9.92</td><td class="tc-g">&lt; 0.0001</td><td>[0.163, 0.243]</td><td class="tc-g">&#10003; Reject H&#8320;</td></tr>
+      <tr><td>Newspaper (simple)</td><td>0.055</td><td>0.017</td><td class="tc-y">3.30</td><td class="tc-y">0.00115</td><td>[0.021, 0.089]</td><td class="tc-y">&#10003; Reject H&#8320;</td></tr>
+      <tr><td>Newspaper (multiple)</td><td>-0.001</td><td>0.006</td><td class="tc-r">-0.18</td><td class="tc-r">0.860</td><td>[-0.013, 0.011]</td><td class="tc-r">&#10007; Fail to reject</td></tr>
+      <tr><td>TV&#215;Radio interaction</td><td>0.0011</td><td>0.000</td><td class="tc-g">20.73</td><td class="tc-g">&lt; 0.0001</td><td>[0.0010, 0.0012]</td><td class="tc-g">&#10003; Reject H&#8320;</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="grid g3" style="max-width:920px;margin-top:11px;">
+  <div class="card t">
+    <div class="ct tl">Why Newspaper collapses in multiple regression</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">In simple regression: newspaper correlates with sales because high-spending markets also spend on TV and radio. Controlling for TV and radio (multiple regression) reveals newspaper has NO independent effect. p jumps from 0.001 to 0.860.</div>
+  </div>
+  <div class="card b">
+    <div class="ct bl">Why the interaction term matters</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">TV&#215;Radio t = 20.73, p &lt; 0.0001. TV and radio <em>synergise</em> — spending on both together produces more sales than either alone. R&#178; jumps from 89.7% to 96.8% by adding this one term.</div>
+  </div>
+  <div class="card g">
+    <div class="ct gl">The decision-making lesson</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">Without hypothesis testing: might keep newspaper in budget (it looked significant alone). Testing reveals: drop newspaper, increase TV and radio, and they interact positively. Testing directly guides budget allocation decisions.</div>
+  </div>
+</div>`,
+
+// ──────────────────────────────────── 11 · CONFIDENCE INTERVALS
+`<div class="sec"><span class="dot"></span>Confidence Intervals &#183; Uncertainty Range</div>
+<h2 class="mid">Confidence Intervals:<br><span class="hl">Beyond Yes/No to How Much</span></h2>
+<div class="fbox">95% CI = &#946;&#770;&#8321; &#177; t*&#8320;.&#8320;&#50; &#183; SE(&#946;&#770;&#8321;) &#8776; &#946;&#770;&#8321; &#177; 2 &#183; SE(&#946;&#770;&#8321;)</div>
+<div class="twoc" style="max-width:920px;margin-top:12px;">
+  <div class="cl">
+    <div class="card a" style="margin-bottom:10px;">
+      <div class="ct">The correct (frequentist) interpretation</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">If we repeated the study 100 times, each time computing a 95% CI, approximately 95 of those intervals would contain the true &#946;&#8321;.<br><br>
+      For Advertising TV: [0.042, 0.053]. This specific interval either contains the true &#946;&#8321; or it does not. We just cannot know which.
+      </div>
+    </div>
+    <div class="card r">
+      <div class="ct rl">The wrong interpretation (very common)</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">"There is a 95% probability that &#946;&#8321; lies in [0.042, 0.053]."<br><br>
+      <strong style="color:var(--red)">WRONG.</strong> &#946;&#8321; is a fixed unknown constant, not random. Probability cannot be assigned to it being in or out of a fixed interval. The interval is random; &#946;&#8321; is not.
+      </div>
+    </div>
+  </div>
+  <div class="cr">
+    <div class="card g" style="margin-bottom:10px;">
+      <div class="ct gl">Why CI is better than p-value alone</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">
+        p-value: "Is there an effect?" (binary yes/no)<br>
+        CI: "How large could the effect plausibly be?" (range)<br><br>
+        Example: drug study, n=5,000<br>
+        &#946;&#770;&#8321; = -0.5 days, p = 0.001, CI = [-0.8, -0.2]<br><br>
+        The CI tells you the true effect is somewhere between 0.2 and 0.8 days shorter recovery — a much richer statement than just "significant."
+      </div>
+    </div>
+    <div class="card t">
+      <div class="ct tl">CI and hypothesis test equivalence</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">
+        <strong>If 0 is outside the 95% CI &#8660; reject H&#8320; at &#945; = 0.05</strong><br><br>
+        TV: CI = [0.042, 0.053]. Zero not included &#8594; reject H&#8320;. Matches p &lt; 0.0001.<br><br>
+        Newspaper (multiple): CI = [-0.013, 0.011]. Zero IS included &#8594; fail to reject H&#8320;. Matches p = 0.86.
+      </div>
+    </div>
+  </div>
+</div>`,
+
+// ──────────────────────────────────── 12 · F-STATISTIC
+`<div class="sec"><span class="dot"></span>F-Statistic &#183; Testing All Predictors</div>
+<h2 class="mid">The F-Statistic:<br><span class="hl">Is ANY Predictor Useful?</span></h2>
+<div class="fbox">F = (TSS &#8722; RSS)/p &#247; RSS/(n &#8722; p &#8722; 1)</div>
+<div class="twoc" style="max-width:920px;margin-top:12px;">
+  <div class="cl">
+    <div class="card a" style="margin-bottom:10px;">
+      <div class="ct">Why we need the F-test</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">With p=20 predictors, checking individual t-tests at &#945;=0.05 gives &#8776;1 false positive by chance — even if ALL predictors are noise (5% &#215; 20 = 1 expected false discovery).<br><br>
+      <strong style="color:var(--text)">The F-statistic tests all p predictors simultaneously:</strong><br>
+      H&#8320;: &#946;&#8321; = &#946;&#8322; = &#8230; = &#946;&#112; = 0 (none matter)<br>
+      H&#8321;: at least one &#946;ⱼ &#8800; 0
+      </div>
+    </div>
+    <div class="card t">
+      <div class="ct tl">What F measures</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">
+        Numerator: average improvement in fit per predictor (TSS&#8722;RSS)/p<br>
+        Denominator: average residual variance RSS/(n&#8722;p&#8722;1)<br><br>
+        <strong style="color:var(--teal)">F = 1:</strong> predictors explain no more than chance<br>
+        <strong style="color:var(--teal)">F &gt;&gt; 1:</strong> predictors explain much more than chance<br><br>
+        Under H&#8320;, F follows an F-distribution with p and n&#8722;p&#8722;1 degrees of freedom.
+      </div>
+    </div>
+  </div>
+  <div class="cr">
+    <div class="card b" style="margin-bottom:10px;">
+      <div class="ct bl">Advertising example</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">
+        Simple regression (TV only):<br>
+        F = 312.1, p &lt; 0.0001<br><br>
+        Multiple regression (TV + Radio + Newspaper):<br>
+        F = 570.3, p &lt; 0.0001<br><br>
+        <strong style="color:var(--text)">Always check F-test first.</strong> Only if F is significant should you look at individual t-tests. Starting with t-tests inflates Type I error.
+      </div>
+    </div>
+    <div class="card g">
+      <div class="ct gl">F vs t: when they differ</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">For a single predictor: F = t&#178;. Exactly equivalent.<br><br>
+      With multiple predictors: F can be significant even when no individual t-test is (correlated predictors share credit). Always run F first, then investigate individual t-tests if F is significant.
+      </div>
+    </div>
+  </div>
+</div>`,
+
+// ──────────────────────────────────── 13 · WHEN TO USE WHICH TEST
+`<div class="sec"><span class="dot"></span>F-Statistic &#183; Decision Map</div>
+<h2 class="mid">Which Test to Use,<br><span class="hl">and When — A Decision Guide</span></h2>
+<div class="twrap">
+  <table>
+    <thead><tr><th>Question you are asking</th><th>Use this test</th><th>Null hypothesis</th><th>When to apply</th></tr></thead>
+    <tbody>
+      <tr><td>Is this ONE predictor useful?</td><td class="tc-t">t-test</td><td>H&#8320;: &#946;ⱼ = 0</td><td>After F-test is significant; one predictor at a time</td></tr>
+      <tr><td>Are ANY predictors useful at all?</td><td class="tc-b">F-test (overall)</td><td>H&#8320;: all &#946;ⱼ = 0</td><td>ALWAYS run first before individual t-tests</td></tr>
+      <tr><td>Do these SPECIFIC k predictors help?</td><td class="tc-b">Partial F-test</td><td>H&#8320;: &#946;&#8321;=&#8230;=&#946;&#107;=0</td><td>Comparing nested models; testing a group of variables</td></tr>
+      <tr><td>Does the interaction term matter?</td><td class="tc-y">t-test on X&#8321;X&#8322;</td><td>H&#8320;: &#946;&#8323; = 0</td><td>After including both main effects X&#8321; and X&#8322;</td></tr>
+      <tr><td>Is the overall model fit useful?</td><td class="tc-g">R&#178; + F-test</td><td>H&#8320;: R&#178; = 0</td><td>Model evaluation — R&#178; increases but F tests if meaningful</td></tr>
+      <tr><td>What is the plausible effect size?</td><td class="tc-a" style="color:var(--a2);">95% CI</td><td>N/A (not a test)</td><td>Always — provides more information than p-value alone</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="grid g3" style="max-width:920px;margin-top:11px;">
+  <div class="card a">
+    <div class="ct">Rule 1: F before t</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">If F is not significant, individual t-tests may be spurious. The F-test acts as a "gate" that controls the family-wise error rate across all p tests.</div>
+  </div>
+  <div class="card t">
+    <div class="ct tl">Rule 2: Include main effects with interactions</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">The hierarchical principle: if X&#8321;X&#8322; is significant, keep both X&#8321; and X&#8322; even if their individual p-values are large. Removing main effects when the interaction is present misspecifies the model.</div>
+  </div>
+  <div class="card b">
+    <div class="ct bl">Rule 3: Report CI, not just p</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">Journals increasingly require CI alongside p-values. CI communicates effect size and uncertainty simultaneously. p-value alone cannot distinguish a small effect in a huge sample from a large effect in a tiny sample.</div>
+  </div>
+</div>`,
+
+// ──────────────────────────────────── 14 · COMPLETE LIVE LAB
+`<div class="sec"><span class="dot"></span>Live Lab &#183; Full Regression Pipeline</div>
+<h2 class="mid" style="font-size:clamp(20px,3vw,36px);">Live Lab: Run a Full Hypothesis Test<br><span class="hl">on a Sample Dataset</span></h2>
+<div style="display:flex;gap:14px;max-width:960px;width:100%;margin-top:12px;align-items:flex-start;">
+  <div class="ctrl-panel" style="min-width:200px;">
+    <div class="ctrl-row"><span class="clbl">True slope &#946;&#8321;</span>
+      <div class="crow"><input type="range" id="lab_b1" min="-8" max="8" value="3" step="0.5" oninput="runLab()"><span class="cval" id="lv_b1">3</span></div>
+    </div>
+    <div class="ctrl-row"><span class="clbl">Noise &#963;</span>
+      <div class="crow"><input type="range" id="lab_sig" min="1" max="20" value="6" step="1" oninput="runLab()"><span class="cval" id="lv_sig">6</span></div>
+    </div>
+    <div class="ctrl-row"><span class="clbl">Sample size n</span>
+      <div class="crow"><input type="range" id="lab_n" min="10" max="100" value="40" step="5" oninput="runLab()"><span class="cval" id="lv_n">40</span></div>
+    </div>
+    <button class="cbtn" onclick="runLab()">&#8635; New Sample</button>
+    <button class="cbtn sec" onclick="runLab100()">Run 100 samples</button>
+    <div style="margin-top:8px;font-size:9.5px;color:var(--muted);font-family:var(--mono);line-height:1.7;" id="lab_history"></div>
+  </div>
+  <div style="flex:1;">
+    <canvas id="labCanvas" width="420" height="200"></canvas>
+    <div class="stats" style="margin-top:8px;">
+      <div class="stat-c"><div class="stat-l">&#946;&#770;&#8321; estimated</div><div class="stat-v" id="lb_b" style="color:var(--a2)">&#8212;</div></div>
+      <div class="stat-c"><div class="stat-l">SE(&#946;&#770;&#8321;)</div><div class="stat-v" id="lb_se" style="color:var(--sub)">&#8212;</div></div>
+      <div class="stat-c"><div class="stat-l">t-stat</div><div class="stat-v" id="lb_t" style="color:var(--teal)">&#8212;</div></div>
+      <div class="stat-c"><div class="stat-l">p-value</div><div class="stat-v" id="lb_p" style="color:var(--ylw)">&#8212;</div></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+      <div class="stat-c" style="flex:1;"><div class="stat-l">95% CI</div><div class="stat-v" id="lb_ci" style="font-size:12px;color:var(--blue)">&#8212;</div></div>
+      <div id="lb_verdict" style="flex:1;text-align:center;padding:8px;border-radius:6px;font-size:11px;font-family:var(--mono);font-weight:700;border:1px solid var(--bor);">&#8212;</div>
+    </div>
+  </div>
+  <div style="min-width:180px;">
+    <canvas id="pDistCanvas" width="180" height="200"></canvas>
+    <p style="font-size:9.5px;color:var(--muted);text-align:center;margin-top:4px;">Distribution of p-values across 100 runs. Red line = &#945; = 0.05.</p>
+    <div class="stat-c" style="margin-top:6px;"><div class="stat-l">Power (% runs where H&#8320; rejected)</div><div class="stat-v" id="lb_power" style="color:var(--grn)">&#8212;</div></div>
+  </div>
+</div>`,
+
+// ──────────────────────────────────── 15 · RSE AND R-SQUARED
+`<div class="sec"><span class="dot"></span>Live Labs &#183; Model Fit Metrics</div>
+<h2 class="mid" style="font-size:clamp(20px,3vw,36px);">RSE and R&#178;: Testing Model Fit<br><span class="hl">After Rejecting H&#8320;</span></h2>
+<p class="sub" style="margin-bottom:6px;">Once we establish that &#946;&#8321; &#8800; 0 (reject H&#8320;), we ask: <em>how well does the model fit?</em> RSE and R&#178; answer this.</p>
+<div class="twoc" style="max-width:920px;margin-top:10px;">
+  <div class="cl">
+    <div class="card a" style="margin-bottom:10px;">
+      <div class="ct">Residual Standard Error (RSE)</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">
+        <code>RSE = &#8730;(RSS/(n&#8722;2))</code><br><br>
+        Average distance of observations from the fitted line, in the original units of Y. For Advertising: RSE = 3.26 thousand units = predictions off by &#8776;3,260 units on average.<br><br>
+        Mean sales = 14,000 units &#8594; % error = 3,260/14,000 = <strong style="color:var(--a2)">23%</strong>. Not great — other factors (radio, newspaper) also drive sales.
+      </div>
+    </div>
+    <div class="card t">
+      <div class="ct tl">R&#178; — Proportion of variance explained</div>
+      <div class="cb" style="margin-top:5px;line-height:1.8;">
+        <code>R&#178; = 1 &#8722; RSS/TSS = (TSS&#8722;RSS)/TSS</code><br><br>
+        TSS = total variability in Y before regression. RSS = remaining variability after regression. TSS&#8722;RSS = explained variability.<br><br>
+        TV only: R&#178; = 0.61 &#8594; 61% of sales variability explained.<br>
+        TV + Radio + Newspaper: R&#178; = 0.897 &#8594; 89.7%.<br>
+        + Interaction: R&#178; = 0.968 &#8594; 96.8%.
+      </div>
+    </div>
+  </div>
+  <div class="cr">
+    <canvas id="r2Canvas" width="380" height="200"></canvas>
+    <div class="ctrl-row" style="margin-top:8px;">
+      <span class="clbl">True R&#178; (adjust noise)</span>
+      <div class="crow"><input type="range" id="r2_slider" min="5" max="95" value="61" oninput="drawR2Demo()"><span class="cval" id="r2_val">0.61</span></div>
+    </div>
+    <div class="callout tl" style="margin-top:10px;">
+      <b>R&#178; and hypothesis testing:</b> R&#178; always increases when you add predictors — even random noise predictors. The F-test for the full model (and adjusted R&#178;) penalise for this. Always use F-test + adjusted R&#178; for model comparison, not raw R&#178; alone.
+    </div>
+  </div>
+</div>`,
+
+// ──────────────────────────────────── 16 · PITFALLS
+`<div class="sec"><span class="dot"></span>Pitfalls &#183; Common Mistakes</div>
+<h2 class="mid">7 Critical Pitfalls<br><span class="hl">That Trip Up Students and Researchers</span></h2>
+<div class="grid g2" style="max-width:920px;margin-top:12px;">
+  <div class="card r">
+    <div class="ct rl">&#9312; Significance &#8800; Importance</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">n=1,000,000 makes &#946;&#770;&#8321;=0.00001 significant. That effect may be meaningless in practice. Always report effect size (the coefficient) and CI, not just p-value.</div>
+  </div>
+  <div class="card y">
+    <div class="ct yl">&#9313; The 0.049 vs 0.051 Cliff</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">p=0.049 is NOT much stronger evidence than p=0.051. The 0.05 cutoff is a convention, not a physical law. Report exact p-values; do not treat the threshold as a binary pass/fail.</div>
+  </div>
+  <div class="card a">
+    <div class="ct">&#9314; Multiple Testing Inflation</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">Testing 20 predictors at &#945;=0.05 &#8594; expect ~1 false positive by chance. Use F-test first. If needed, apply Bonferroni correction: &#945;* = 0.05/p per individual test.</div>
+  </div>
+  <div class="card r">
+    <div class="ct rl">&#9315; p-Hacking / Data Dredging</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">Trying many models, subsets, and transformations until p&lt;0.05 is reached. Results will not replicate. Pre-register your analysis plan before collecting data.</div>
+  </div>
+  <div class="card b">
+    <div class="ct bl">&#9316; Fail to reject &#8800; No effect</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">p=0.15 does not mean &#946;&#8321;=0. It means insufficient evidence with this sample. With n=10, even &#946;&#8321;=5 might give p=0.2. Report CI to show the uncertainty range.</div>
+  </div>
+  <div class="card t">
+    <div class="ct tl">&#9317; Ignoring Regression Assumptions</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">t-tests assume: Normal errors, constant variance, independent errors, no outliers. If violated, p-values are wrong. Always plot residuals vs fitted values before trusting inference.</div>
+  </div>
+  <div class="card p">
+    <div class="ct pl">&#9318; Running t-tests before F-test</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">With p predictors, individual t-tests inflate Type I error. The F-test is the correct first step for multiple regression. Only proceed to t-tests if F is significant.</div>
+  </div>
+  <div class="card g">
+    <div class="ct gl">&#9319; Omitted Variable Bias</div>
+    <div class="cb" style="margin-top:4px;line-height:1.75;">If an important predictor Z correlates with both X and Y, but is not in the model, &#946;&#770;&#8321; is biased. Newspaper looked significant alone because it was proxying for TV+Radio. Multiple regression controls for this.</div>
+  </div>
+</div>`,
+
+// ──────────────────────────────────── 17 · QUIZ
+`<div class="sec"><span class="dot"></span>Quiz &#183; Test Your Understanding</div>
+<h2 class="mid" style="font-size:clamp(20px,3vw,36px);">Five Conceptual Questions<br><span class="hl">That Separate Understanding from Memorisation</span></h2>
+<div class="qwrap">
+  <div class="qbox">
+    <div class="qq">1. A regression gives &#946;&#770;&#8321; = 12, SE = 6. What is the t-stat, and what does it tell you?</div>
+    <div class="qopts">
+      <button class="qo" onclick="cq(this,'ok','qf1')">t = 2.0 — &#946;&#770;&#8321; is 2 SEs from zero; marginally significant at &#945;=0.05 (p&#8776;0.05 for large n)</button>
+      <button class="qo" onclick="cq(this,'no','qf1')">t = 0.5 — compute SE/&#946;&#770;&#8321; to standardise</button>
+      <button class="qo" onclick="cq(this,'no','qf1')">t = 72 — multiply &#946;&#770;&#8321; by SE to get the t-stat</button>
+    </div>
+    <div class="qfb" id="qf1"></div>
+  </div>
+  <div class="qbox">
+    <div class="qq">2. The F-test for a model with 10 predictors gives p = 0.43. Should you investigate individual t-tests?</div>
+    <div class="qopts">
+      <button class="qo" onclick="cq(this,'no','qf2')">Yes — some predictors might be individually significant even if overall F is not</button>
+      <button class="qo" onclick="cq(this,'ok','qf2')">No — p = 0.43 means insufficient evidence that ANY predictor helps. Individual t-tests would inflate Type I error and likely produce spurious results.</button>
+      <button class="qo" onclick="cq(this,'no','qf2')">Yes — the F-test only tests the intercept</button>
+    </div>
+    <div class="qfb" id="qf2"></div>
+  </div>
+  <div class="qbox">
+    <div class="qq">3. Two studies: Study A (n=50): &#946;&#770;&#8321;=5, p=0.08. Study B (n=5000): &#946;&#770;&#8321;=0.5, p=0.001. Which effect is more PRACTICALLY important?</div>
+    <div class="qopts">
+      <button class="qo" onclick="cq(this,'no','qf3')">Study B — it has a smaller p-value so the effect is stronger</button>
+      <button class="qo" onclick="cq(this,'ok','qf3')">Study A — the coefficient is 10&#215; larger (5 vs 0.5). Study B is statistically significant only because of the massive sample. Always compare effect sizes, not p-values.</button>
+      <button class="qo" onclick="cq(this,'no','qf3')">They are equivalent — both are about the same relationship</button>
+    </div>
+    <div class="qfb" id="qf3"></div>
+  </div>
+  <div class="qbox">
+    <div class="qq">4. The 95% CI for &#946;&#8321; is [1.2, 8.4]. Without computing the p-value, what can you conclude at &#945; = 0.05?</div>
+    <div class="qopts">
+      <button class="qo" onclick="cq(this,'no','qf4')">Cannot determine significance without the p-value</button>
+      <button class="qo" onclick="cq(this,'ok','qf4')">Reject H&#8320; at &#945; = 0.05 — zero is NOT in [1.2, 8.4], so the CI excludes zero, which is exactly equivalent to p &lt; 0.05 for a two-sided test.</button>
+      <button class="qo" onclick="cq(this,'no','qf4')">Fail to reject H&#8320; — the CI is too wide to be reliable</button>
+    </div>
+    <div class="qfb" id="qf4"></div>
+  </div>
+  <div class="qbox">
+    <div class="qq">5. Adding a predictor to a model increases R&#178; from 0.82 to 0.83 but the F-test for the new predictor gives p = 0.41. Should you keep the predictor?</div>
+    <div class="qopts">
+      <button class="qo" onclick="cq(this,'no','qf5')">Yes — R&#178; always increases when you add predictors, so any increase is good</button>
+      <button class="qo" onclick="cq(this,'ok','qf5')">No — R&#178; ALWAYS increases when you add predictors, even random noise. p = 0.41 means the improvement is consistent with chance. Use adjusted R&#178; or AIC, which penalise for extra predictors.</button>
+      <button class="qo" onclick="cq(this,'no','qf5')">Only keep it if R&#178; increases by more than 5%</button>
+    </div>
+    <div class="qfb" id="qf5"></div>
+  </div>
+</div>`,
+];
+
+// ═══════════════════════════════════════════════════════════
+// ENGINE
+// ═══════════════════════════════════════════════════════════
+const TOTAL=SLIDES_HTML.length;
+let cur=0;
+const sarea=document.getElementById('sarea');
+const tnav=document.getElementById('tnav');
+const tabsEl=document.getElementById('tabs');
+
+// Build slides
+SLIDES_HTML.forEach((html,i)=>{
+  const d=document.createElement('div');
+  d.className='slide'+(i===0?' on':'');
+  d.id='s'+i;
+  d.innerHTML=html;
+  sarea.appendChild(d);
+});
+
+// Build thumbs
+const LABELS=['Cover','Sampling Problem','Real Stakes','H0 & H1','Pop vs Sample','Workflow','SE Formula','SE Lab','t-Statistic','p-value','Adv Walkthrough','Conf Intervals','F-Statistic','Test Guide','Live Lab','RSE & R2','Pitfalls','Quiz'];
+LABELS.forEach((l,i)=>{
+  const b=document.createElement('button');
+  b.className='thumb'+(i===0?' on':'');
+  b.textContent=l;
+  b.onclick=()=>goTo(i);
+  tnav.appendChild(b);
+});
+
+// Build section tabs
+SECTIONS.forEach((sec,si)=>{
+  const b=document.createElement('button');
+  b.className='tab'+(si===0?' on':'');
+  b.id='sec'+si;
+  b.textContent=sec.label;
+  b.onclick=()=>goTo(sec.slides[0]);
+  tabsEl.appendChild(b);
+});
+
+function goTo(n){
+  if(n<0||n>=TOTAL)return;
+  document.getElementById('s'+cur).classList.remove('on');
+  document.querySelectorAll('.thumb')[cur].classList.remove('on');
+  cur=n;
+  document.getElementById('s'+cur).classList.add('on');
+  const th=document.querySelectorAll('.thumb')[cur];
+  th.classList.add('on');
+  th.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  document.getElementById('ctr').textContent=String(cur+1).padStart(2,'0')+'/'+String(TOTAL).padStart(2,'0');
+  document.getElementById('pf').style.width=((cur+1)/TOTAL*100)+'%';
+  // update section tabs
+  SECTIONS.forEach((sec,si)=>{
+    const on=sec.slides.includes(cur);
+    document.getElementById('sec'+si).classList.toggle('on',on);
+  });
+  // lazy draws
+  const lazy={1:drawSamplingDemo,7:()=>{updateSE();},8:drawTDist,14:runLab,15:drawR2Demo};
+  if(lazy[cur]) setTimeout(lazy[cur],60);
+}
+function next(){goTo(cur+1);}
+function prev(){goTo(cur-1);}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();next();}
+  if(e.key==='ArrowLeft'){e.preventDefault();prev();}
+  if(e.key==='f'||e.key==='F')document.documentElement.requestFullscreen?.();
+});
+
+// ═══════════════════════════════════════════════════════════
+// QUIZ
+// ═══════════════════════════════════════════════════════════
+function cq(btn,res,fbId){
+  const fb=document.getElementById(fbId);
+  btn.closest('.qopts').querySelectorAll('.qo').forEach(b=>{b.disabled=true;});
+  btn.classList.add(res==='ok'?'ok':'no');
+  if(res==='ok'){
+    fb.innerHTML='<span style="color:#4bd49a;font-weight:600;">&#10003; Correct!</span> '+btn.textContent;
+  } else {
+    const correct=btn.closest('.qopts').querySelector('[onclick*="ok"]');
+    fb.innerHTML='<span style="color:#f47070;font-weight:600;">&#10007; Not quite.</span> The correct answer: '+correct.textContent;
+    correct.classList.add('ok');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// MATH HELPERS
+// ═══════════════════════════════════════════════════════════
+function randn(){
+  let u=0,v=0;
+  while(!u)u=Math.random();while(!v)v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+function normalCDF(z){
+  const a=[0.254829592,-0.284496736,1.421413741,-1.453152027,1.061405429],p=0.3275911;
+  const s=z<0?-1:1; z=Math.abs(z)/Math.sqrt(2);
+  const t=1/(1+p*z);
+  return 0.5*(1+s*(1-((((a[4]*t+a[3])*t+a[2])*t+a[1])*t+a[0])*t*Math.exp(-z*z)));
+}
+function ols(xs,ys){
+  const n=xs.length,xb=xs.reduce((a,b)=>a+b,0)/n,yb=ys.reduce((a,b)=>a+b,0)/n;
+  let num=0,den=0;
+  xs.forEach((x,i)=>{num+=(x-xb)*(ys[i]-yb);den+=(x-xb)**2;});
+  const b1=num/den,b0=yb-b1*xb;
+  const rss=ys.reduce((s,y,i)=>s+(y-(b0+b1*xs[i]))**2,0);
+  const rse=Math.sqrt(rss/(n-2));
+  const se=rse/Math.sqrt(den);
+  const t=b1/se;
+  const p=2*(1-normalCDF(Math.abs(t)));
+  return{b0,b1,se,t,p,rse,rss,xb,yb,den};
+}
+function pFmt(p){return p<0.0001?'<0.0001':p.toFixed(4);}
+
+// Canvas helpers
+function clr(ctx,W,H){ctx.clearRect(0,0,W,H);}
+function axes(ctx,W,H,pad){
+  ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
+}
+function mkScale(vals,W,H,pad){
+  const mn=Math.min(...vals),mx=Math.max(...vals);
+  return{
+    x:v=>pad+(v-mn)/(mx-mn)*(W-2*pad),
+    y:v=>H-pad-(v-mn)/(mx-mn)*(H-2*pad),
+    xn:v=>pad+(v-mn)/(mx-mn)*(W-2*pad),
+    yn:v=>H-pad-(v-mn)/(mx-mn)*(H-2*pad),
+  };
+}
+function gridLines(ctx,W,H,pad,yvals,sc){
+  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;
+  yvals.forEach(y=>{ctx.beginPath();ctx.moveTo(pad,sc.y(y));ctx.lineTo(W-pad,sc.y(y));ctx.stroke();});
+}
+
+// ═══════════════════════════════════════════════════════════
+// SLIDE 1 — SAMPLING DEMO
+// ═══════════════════════════════════════════════════════════
+function drawSamplingDemo(){
+  const c=document.getElementById('sampCanvas');if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height,pad=30;
+  clr(ctx,W,H);axes(ctx,W,H,pad);
+  const trueB0=10,trueB1=3,sigma=8,n=20,nLines=10;
+  const xMin=0,xMax=15,yMin=0,yMax=60;
+  const px=x=>pad+(x-xMin)/(xMax-xMin)*(W-2*pad);
+  const py=y=>H-pad-(y-yMin)/(yMax-yMin)*(H-2*pad);
+  // sample lines (light blue)
+  for(let l=0;l<nLines;l++){
+    const xs=[],ys=[];
+    for(let i=0;i<n;i++){const x=1+Math.random()*13;xs.push(x);ys.push(trueB0+trueB1*x+randn()*sigma);}
+    const r=ols(xs,ys);
+    ctx.beginPath();ctx.moveTo(px(xMin),py(r.b0+r.b1*xMin));ctx.lineTo(px(xMax),py(r.b0+r.b1*xMax));
+    ctx.strokeStyle='rgba(91,156,245,0.25)';ctx.lineWidth=1.5;ctx.stroke();
+  }
+  // true line (red)
+  ctx.beginPath();ctx.moveTo(px(xMin),py(trueB0+trueB1*xMin));ctx.lineTo(px(xMax),py(trueB0+trueB1*xMax));
+  ctx.strokeStyle='rgba(232,97,79,0.9)';ctx.lineWidth=2.5;ctx.stroke();
+  // labels
+  ctx.fillStyle='rgba(232,97,79,0.8)';ctx.font='11px Space Grotesk,sans-serif';ctx.textAlign='left';
+  ctx.fillText('True &#946;&#8321;=3',px(11),py(trueB0+trueB1*11)-8);
+  ctx.fillStyle='rgba(91,156,245,0.7)';
+  ctx.fillText('Sample lines',px(1),py(25));
+}
+
+// ═══════════════════════════════════════════════════════════
+// SLIDE 7 — SE INTERACTIVE
+// ═══════════════════════════════════════════════════════════
+function updateSE(){
+  const sigma=parseFloat(document.getElementById('se_sigma').value);
+  const n=parseInt(document.getElementById('se_n').value);
+  const xr=parseFloat(document.getElementById('se_xr').value);
+  document.getElementById('sv_sigma').textContent=sigma.toFixed(0);
+  document.getElementById('sv_n').textContent=n;
+  document.getElementById('sv_xr').textContent=xr.toFixed(0);
+  const trueB1=2,trueB0=5;
+  const xs=[],ys=[];
+  for(let i=0;i<n;i++){
+    const x=5+Math.random()*xr;xs.push(x);
+    ys.push(trueB0+trueB1*x+randn()*sigma);
+  }
+  const r=ols(xs,ys);
+  document.getElementById('se_val').textContent=r.se.toFixed(3);
+  const tEl=document.getElementById('se_t');
+  tEl.textContent=r.t.toFixed(2);
+  tEl.style.color=Math.abs(r.t)>2?'#4bd49a':'#f47070';
+  const pEl=document.getElementById('se_p');
+  pEl.textContent=pFmt(r.p);
+  pEl.style.color=r.p<0.05?'#4bd49a':'#f47070';
+  const vEl=document.getElementById('se_dec');
+  const vC=document.getElementById('se_verdict');
+  if(r.p<0.05){vEl.textContent='Reject H\u2080';vEl.style.color='#4bd49a';vC.style.borderColor='rgba(75,212,154,.4)';}
+  else{vEl.textContent='Fail to reject';vEl.style.color='#f47070';vC.style.borderColor='rgba(244,112,112,.3)';}
+  // draw
+  const c=document.getElementById('seCanvas');if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height,pad=34;
+  clr(ctx,W,H);
+  const xMn=Math.min(...xs)-1,xMx=Math.max(...xs)+1;
+  const yMn=Math.min(...ys)-3,yMx=Math.max(...ys)+3;
+  const px=x=>pad+(x-xMn)/(xMx-xMn)*(W-2*pad);
+  const py=y=>H-pad-(y-yMn)/(yMx-yMn)*(H-2*pad);
+  // grid
+  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;
+  [0.25,0.5,0.75].forEach(f=>{const y=yMn+(yMx-yMn)*f;ctx.beginPath();ctx.moveTo(pad,py(y));ctx.lineTo(W-pad,py(y));ctx.stroke();});
+  axes(ctx,W,H,pad);
+  // CI band
+  const ci=1.96*r.se;
+  ctx.beginPath();
+  for(let xv=xMn;xv<=xMx;xv+=0.2) ctx.lineTo(px(xv),py(r.b0+r.b1*xv+ci*(xv-r.xb)/Math.sqrt(r.den/n)));
+  for(let xv=xMx;xv>=xMn;xv-=0.2) ctx.lineTo(px(xv),py(r.b0+r.b1*xv-ci*(xv-r.xb)/Math.sqrt(r.den/n)));
+  ctx.closePath();ctx.fillStyle='rgba(62,207,178,0.1)';ctx.fill();
+  // fitted line
+  ctx.beginPath();ctx.moveTo(px(xMn),py(r.b0+r.b1*xMn));ctx.lineTo(px(xMx),py(r.b0+r.b1*xMx));
+  ctx.strokeStyle='rgba(232,97,79,0.85)';ctx.lineWidth=2;ctx.stroke();
+  // true line
+  ctx.beginPath();ctx.moveTo(px(xMn),py(trueB0+trueB1*xMn));ctx.lineTo(px(xMx),py(trueB0+trueB1*xMx));
+  ctx.strokeStyle='rgba(245,200,66,0.5)';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.stroke();
+  ctx.setLineDash([]);
+  // points
+  xs.forEach((x,i)=>{ctx.beginPath();ctx.arc(px(x),py(ys[i]),3.5,0,Math.PI*2);ctx.fillStyle='rgba(91,156,245,0.7)';ctx.fill();});
+  // legend
+  ctx.font='9.5px Space Grotesk';ctx.fillStyle='rgba(232,97,79,0.8)';ctx.textAlign='left';ctx.fillText('OLS fit',pad+4,pad+14);
+  ctx.fillStyle='rgba(245,200,66,0.6)';ctx.fillText('True line',pad+4,pad+26);
+  ctx.fillStyle='rgba(62,207,178,0.7)';ctx.fillText('95% CI band',pad+4,pad+38);
+  // annotation
+  ctx.fillStyle='rgba(160,160,184,0.7)';ctx.textAlign='right';
+  ctx.fillText('SE='+r.se.toFixed(3)+' | t='+r.t.toFixed(2),W-pad-4,H-pad-6);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SLIDE 8 — t-DISTRIBUTION
+// ═══════════════════════════════════════════════════════════
+function tPDF(t){return Math.pow(1+t*t/30,-15.5)*0.92;}
+function drawTDist(){
+  const tObs=parseFloat(document.getElementById('t_slider').value);
+  document.getElementById('t_sval').textContent=tObs.toFixed(1);
+  const p=2*(1-normalCDF(Math.abs(tObs)));
+  document.getElementById('t_pval').textContent=pFmt(p);
+  const conc=document.getElementById('t_conc');
+  if(p<0.05){conc.textContent='Reject H\u2080';conc.style.color='#4bd49a';}
+  else{conc.textContent='Fail to reject';conc.style.color='#f47070';}
+  const c=document.getElementById('tDistCanvas');if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height,pad=30;
+  clr(ctx,W,H);
+  const tMn=-5,tMx=5;
+  const px=t=>pad+(t-tMn)/(tMx-tMn)*(W-2*pad);
+  const py=y=>H-pad-y*1.6*(H-2*pad);
+  const tc=1.96;
+  // fill tails
+  [[tMn,-tc],[tc,tMx]].forEach(([a,b])=>{
+    ctx.beginPath();ctx.moveTo(px(a),H-pad);
+    for(let t=a;t<=b;t+=0.05) ctx.lineTo(px(t),py(tPDF(t)));
+    ctx.lineTo(px(b),H-pad);ctx.closePath();
+    ctx.fillStyle='rgba(91,156,245,0.2)';ctx.fill();
+  });
+  // fill observed region (more extreme than tObs)
+  if(Math.abs(tObs)<=tMx){
+    [[tMn,-Math.abs(tObs)],[Math.abs(tObs),tMx]].forEach(([a,b])=>{
+      if(a>=tMn&&b<=tMx){
+        ctx.beginPath();ctx.moveTo(px(a),H-pad);
+        for(let t=a;t<=b;t+=0.05) ctx.lineTo(px(t),py(tPDF(t)));
+        ctx.lineTo(px(b),H-pad);ctx.closePath();
+        ctx.fillStyle=p<0.05?'rgba(75,212,154,0.25)':'rgba(232,97,79,0.2)';ctx.fill();
+      }
+    });
+  }
+  // curve
+  ctx.beginPath();
+  for(let t=tMn;t<=tMx;t+=0.05){t===tMn?ctx.moveTo(px(t),py(tPDF(t))):ctx.lineTo(px(t),py(tPDF(t)));}
+  ctx.strokeStyle='rgba(200,200,230,0.8)';ctx.lineWidth=2;ctx.stroke();
+  // critical lines
+  ctx.setLineDash([4,3]);ctx.strokeStyle='rgba(91,156,245,0.6)';ctx.lineWidth=1.5;
+  [-tc,tc].forEach(t=>{ctx.beginPath();ctx.moveTo(px(t),py(tPDF(t)));ctx.lineTo(px(t),H-pad);ctx.stroke();});
+  ctx.setLineDash([]);
+  // observed line
+  if(Math.abs(tObs)<=tMx){
+    ctx.strokeStyle=p<0.05?'rgba(75,212,154,0.9)':'rgba(232,97,79,0.9)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(px(tObs),py(tPDF(tObs)));ctx.lineTo(px(tObs),H-pad);ctx.stroke();
+    ctx.fillStyle=p<0.05?'rgba(75,212,154,0.9)':'rgba(232,97,79,0.9)';
+    ctx.font='bold 11px Fira Code';ctx.textAlign='center';
+    ctx.fillText('t='+tObs.toFixed(1),px(tObs),py(tPDF(tObs))-6);
+  }
+  // axes & labels
+  axes(ctx,W,H,pad);
+  ctx.fillStyle='rgba(94,94,120,0.8)';ctx.font='9px Fira Code';ctx.textAlign='center';
+  [-4,-3,-2,-1,0,1,2,3,4].forEach(t=>ctx.fillText(t,px(t),H-pad+13));
+  ctx.fillStyle='rgba(91,156,245,0.7)';ctx.fillText('\u00b11.96',px(0),H-pad+24);
+  ctx.fillStyle='rgba(94,94,120,0.7)';ctx.fillText('t-value (under H\u2080)',W/2,H-3);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SLIDE 14 — LIVE LAB
+// ═══════════════════════════════════════════════════════════
+let pHistory=[];
+function runLab(){
+  const b1=parseFloat(document.getElementById('lab_b1').value);
+  const sig=parseFloat(document.getElementById('lab_sig').value);
+  const n=parseInt(document.getElementById('lab_n').value);
+  document.getElementById('lv_b1').textContent=b1.toFixed(1);
+  document.getElementById('lv_sig').textContent=sig.toFixed(0);
+  document.getElementById('lv_n').textContent=n;
+  const xs=[],ys=[];
+  for(let i=0;i<n;i++){const x=1+Math.random()*19;xs.push(x);ys.push(10+b1*x+randn()*sig);}
+  const r=ols(xs,ys);
+  document.getElementById('lb_b').textContent=r.b1.toFixed(3);
+  document.getElementById('lb_se').textContent=r.se.toFixed(3);
+  const tEl=document.getElementById('lb_t');
+  tEl.textContent=r.t.toFixed(2);tEl.style.color=Math.abs(r.t)>1.96?'#3ecfb2':'#f47070';
+  const pEl=document.getElementById('lb_p');
+  pEl.textContent=pFmt(r.p);pEl.style.color=r.p<0.05?'#4bd49a':'#f47070';
+  const ci=[r.b1-1.96*r.se,r.b1+1.96*r.se];
+  document.getElementById('lb_ci').textContent='['+ci[0].toFixed(2)+', '+ci[1].toFixed(2)+']';
+  const vd=document.getElementById('lb_verdict');
+  if(r.p<0.05){vd.textContent='REJECT H\u2080';vd.style.color='#4bd49a';vd.style.borderColor='rgba(75,212,154,.4)';vd.style.background='rgba(75,212,154,.08)';}
+  else{vd.textContent='FAIL TO REJECT';vd.style.color='#f47070';vd.style.borderColor='rgba(244,112,112,.3)';vd.style.background='rgba(244,112,112,.05)';}
+  drawLabCanvas(xs,ys,r);
+  pHistory=[r.p];
+  drawPDist();
+}
+function runLab100(){
+  const b1=parseFloat(document.getElementById('lab_b1').value);
+  const sig=parseFloat(document.getElementById('lab_sig').value);
+  const n=parseInt(document.getElementById('lab_n').value);
+  pHistory=[];
+  for(let run=0;run<100;run++){
+    const xs=[],ys=[];
+    for(let i=0;i<n;i++){const x=1+Math.random()*19;xs.push(x);ys.push(10+b1*x+randn()*sig);}
+    const r=ols(xs,ys);pHistory.push(r.p);
+  }
+  const power=pHistory.filter(p=>p<0.05).length;
+  document.getElementById('lb_power').textContent=power+'%';
+  const hist=document.getElementById('lab_history');
+  hist.innerHTML='Last 10 p-values:<br>'+pHistory.slice(-10).map(p=>'<span style="color:'+(p<0.05?'#4bd49a':'#f47070')+'">'+(p<0.0001?'<.0001':p.toFixed(3))+'</span>').join('  ');
+  drawPDist();
+}
+function drawLabCanvas(xs,ys,r){
+  const c=document.getElementById('labCanvas');if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height,pad=28;
+  clr(ctx,W,H);
+  const xMn=0,xMx=21,yMn=Math.min(...ys)-3,yMx=Math.max(...ys)+3;
+  const px=x=>pad+(x-xMn)/(xMx-xMn)*(W-2*pad);
+  const py=y=>H-pad-(y-yMn)/(yMx-yMn)*(H-2*pad);
+  axes(ctx,W,H,pad);
+  xs.forEach((x,i)=>{ctx.beginPath();ctx.arc(px(x),py(ys[i]),3,0,Math.PI*2);ctx.fillStyle='rgba(91,156,245,0.65)';ctx.fill();});
+  ctx.beginPath();ctx.moveTo(px(xMn),py(r.b0));ctx.lineTo(px(xMx),py(r.b0+r.b1*xMx));
+  ctx.strokeStyle='rgba(232,97,79,0.85)';ctx.lineWidth=2;ctx.stroke();
+}
+function drawPDist(){
+  const c=document.getElementById('pDistCanvas');if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height,pad=20;
+  clr(ctx,W,H);
+  if(pHistory.length===0)return;
+  const bins=new Array(20).fill(0);
+  pHistory.forEach(p=>bins[Math.min(Math.floor(p*20),19)]++);
+  const mx=Math.max(...bins,1);
+  const bw=(W-2*pad)/20;
+  bins.forEach((cnt,i)=>{
+    const x=pad+i*bw;
+    const h=(cnt/mx)*(H-2*pad);
+    const p_mid=(i+0.5)/20;
+    ctx.fillStyle=p_mid<0.05?'rgba(75,212,154,0.6)':'rgba(94,94,120,0.4)';
+    ctx.fillRect(x,H-pad-h,bw-1,h);
+  });
+  // alpha line
+  const alphaX=pad+0.05*20*bw;
+  ctx.strokeStyle='rgba(232,97,79,0.8)';ctx.lineWidth=1.5;ctx.setLineDash([3,2]);
+  ctx.beginPath();ctx.moveTo(alphaX,pad);ctx.lineTo(alphaX,H-pad);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(94,94,120,0.7)';ctx.font='8px Fira Code';ctx.textAlign='center';
+  ctx.fillText('0',pad,H-pad+11);ctx.fillText('0.5',W/2,H-pad+11);ctx.fillText('1',W-pad,H-pad+11);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SLIDE 15 — R2 DEMO
+// ═══════════════════════════════════════════════════════════
+function drawR2Demo(){
+  const pct=parseInt(document.getElementById('r2_slider').value)/100;
+  document.getElementById('r2_val').textContent=pct.toFixed(2);
+  const c=document.getElementById('r2Canvas');if(!c)return;
+  const ctx=c.getContext('2d'),W=c.width,H=c.height,pad=28;
+  clr(ctx,W,H);
+  const n=40,trueB1=3*(pct**0.5),sigma=12*(1-pct)**0.7;
+  const xs=[],ys=[];
+  for(let i=0;i<n;i++){const x=1+i/n*18;xs.push(x);ys.push(5+trueB1*x+randn()*sigma);}
+  const r=ols(xs,ys);
+  const xMn=0,xMx=20,yMn=Math.min(...ys)-2,yMx=Math.max(...ys)+2;
+  const px=x=>pad+(x-xMn)/(xMx-xMn)*(W-2*pad);
+  const py=y=>H-pad-(y-yMn)/(yMx-yMn)*(H-2*pad);
+  // TSS visualised as vertical lines to mean
+  const yb=r.yb;
+  xs.forEach((x,i)=>{
+    ctx.beginPath();ctx.moveTo(px(x),py(yb));ctx.lineTo(px(x),py(ys[i]));
+    ctx.strokeStyle='rgba(159,122,234,0.2)';ctx.lineWidth=1;ctx.stroke();
+  });
+  // RSS lines
+  xs.forEach((x,i)=>{
+    ctx.beginPath();ctx.moveTo(px(x),py(r.b0+r.b1*x));ctx.lineTo(px(x),py(ys[i]));
+    ctx.strokeStyle='rgba(232,97,79,0.3)';ctx.lineWidth=1.5;ctx.stroke();
+  });
+  // mean line
+  ctx.beginPath();ctx.moveTo(px(xMn),py(yb));ctx.lineTo(px(xMx),py(yb));
+  ctx.strokeStyle='rgba(159,122,234,0.5)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.stroke();
+  ctx.setLineDash([]);
+  // fitted
+  ctx.beginPath();ctx.moveTo(px(xMn),py(r.b0));ctx.lineTo(px(xMx),py(r.b0+r.b1*xMx));
+  ctx.strokeStyle='rgba(232,97,79,0.9)';ctx.lineWidth=2;ctx.stroke();
+  // points
+  xs.forEach((x,i)=>{ctx.beginPath();ctx.arc(px(x),py(ys[i]),3,0,Math.PI*2);ctx.fillStyle='rgba(91,156,245,0.7)';ctx.fill();});
+  axes(ctx,W,H,pad);
+  // R2 annotation
+  const tss=ys.reduce((s,y)=>s+(y-r.yb)**2,0);
+  const r2=1-r.rss/tss;
+  ctx.fillStyle='rgba(200,200,230,0.9)';ctx.font='bold 12px Fira Code';ctx.textAlign='right';
+  ctx.fillText('R\u00b2='+r2.toFixed(2),W-pad-4,pad+14);
+  ctx.fillStyle='rgba(94,94,120,0.6)';ctx.font='9px Space Grotesk';ctx.textAlign='right';
+  ctx.fillText('Purple=TSS | Red=RSS',W-pad-4,H-pad-5);
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+goTo(0);
+setTimeout(drawSamplingDemo,200);
+</script>
+</body>
+</html>

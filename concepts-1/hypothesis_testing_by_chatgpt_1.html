@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hypothesis Testing with Sample Datasets</title>
+<style>
+  :root{
+    --bg:#0f172a; --panel:#111827; --card:#ffffff; --ink:#172033; --muted:#64748b;
+    --blue:#2563eb; --green:#16a34a; --orange:#f97316; --red:#dc2626; --purple:#7c3aed;
+    --soft:#f8fafc; --line:#e5e7eb; --yellow:#fef3c7;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  .deck{height:100vh;display:flex;align-items:center;justify-content:center;padding:22px;}
+  .slide{display:none;width:min(1200px,96vw);height:min(675px,90vh);background:linear-gradient(145deg,#fff 0%,#f8fafc 100%);border-radius:24px;box-shadow:0 25px 80px rgba(0,0,0,.35);padding:46px 56px;position:relative;overflow:hidden;}
+  .slide.active{display:block;}
+  .slide::after{content:attr(data-num);position:absolute;right:30px;bottom:22px;color:#94a3b8;font-size:16px;}
+  h1{font-size:54px;line-height:1.05;margin:0 0 18px;color:#0f172a;letter-spacing:-1px;}
+  h2{font-size:40px;line-height:1.12;margin:0 0 22px;color:#0f172a;letter-spacing:-.5px;}
+  h3{font-size:27px;margin:18px 0 10px;color:#1e293b;}
+  p,li{font-size:23px;line-height:1.45;margin:10px 0;}
+  .small{font-size:18px;color:var(--muted);}
+  .big{font-size:34px;font-weight:800;color:#0f172a;}
+  .tag{display:inline-block;padding:7px 13px;border-radius:999px;background:#dbeafe;color:#1d4ed8;font-weight:700;font-size:17px;margin-bottom:16px;}
+  .grid{display:grid;gap:22px;}
+  .cols2{grid-template-columns:1fr 1fr;}
+  .cols3{grid-template-columns:repeat(3,1fr);}
+  .card{background:white;border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 8px 24px rgba(15,23,42,.08);}
+  .card.blue{border-top:8px solid var(--blue)} .card.green{border-top:8px solid var(--green)} .card.orange{border-top:8px solid var(--orange)} .card.red{border-top:8px solid var(--red)} .card.purple{border-top:8px solid var(--purple)}
+  table{border-collapse:collapse;width:100%;background:white;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(15,23,42,.08);font-size:21px;}
+  th{background:#1e293b;color:white;text-align:left;padding:12px 14px;font-weight:700;}
+  td{border-bottom:1px solid var(--line);padding:12px 14px;}
+  tr:last-child td{border-bottom:none}
+  .center{text-align:center}.muted{color:var(--muted)}
+  .formula{background:#0f172a;color:#e0f2fe;padding:18px 24px;border-radius:16px;font-family:Consolas,monospace;font-size:30px;text-align:center;margin:20px 0;}
+  .callout{background:#fef3c7;border-left:10px solid #f59e0b;border-radius:16px;padding:20px 24px;margin:20px 0;}
+  .success{background:#dcfce7;border-left:10px solid #16a34a;border-radius:16px;padding:18px 22px;margin:18px 0;}
+  .danger{background:#fee2e2;border-left:10px solid #dc2626;border-radius:16px;padding:18px 22px;margin:18px 0;}
+  .mini{font-size:20px;}
+  .nav{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:10px;z-index:10;align-items:center;background:rgba(15,23,42,.82);padding:10px 14px;border-radius:999px;color:white;backdrop-filter:blur(8px);}
+  button{border:none;border-radius:999px;padding:9px 15px;font-size:16px;font-weight:700;cursor:pointer;background:white;color:#0f172a;}
+  .progress{height:6px;width:180px;background:#334155;border-radius:999px;overflow:hidden;}
+  .bar{height:100%;width:0;background:#60a5fa;}
+  .pill{display:inline-block;border:1px solid var(--line);background:#f8fafc;border-radius:999px;padding:8px 13px;margin:5px;font-weight:700;font-size:18px;}
+  .axis{height:66px;background:linear-gradient(90deg,#dbeafe,#fee2e2);border-radius:16px;position:relative;margin:25px 0 10px;}
+  .axis .mark{position:absolute;top:-12px;width:6px;height:90px;background:#0f172a;border-radius:5px;}
+  .axis .label{position:absolute;top:76px;transform:translateX(-50%);font-size:16px;color:#475569;}
+  .watermark{position:absolute;right:-120px;top:-120px;width:340px;height:340px;border-radius:50%;background:rgba(37,99,235,.08);}
+  .tiny-table td,.tiny-table th{padding:8px 10px;font-size:18px;}
+  @media print{body{background:white}.deck{display:block;height:auto;padding:0}.slide{display:block;page-break-after:always;width:100vw;height:56.25vw;border-radius:0;box-shadow:none}.nav{display:none}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<section class="slide active" data-num="1/31">
+  <div class="watermark"></div>
+  <span class="tag">Statistics for Machine Learning</span>
+  <h1>Hypothesis Testing<br/>with Sample Datasets</h1>
+  <p class="big">A simple, step-by-step way to teach students why these concepts exist.</p>
+  <div class="callout"><p><b>Main idea:</b> Is the pattern in our data a real signal, or could it be random noise?</p></div>
+</section>
+
+<section class="slide" data-num="2/31">
+  <h2>The question students should remember</h2>
+  <div class="center" style="margin-top:70px">
+    <p class="big">“Is what I observed bigger than what random chance normally produces?”</p>
+  </div>
+  <div class="grid cols2" style="margin-top:40px">
+    <div class="card blue"><h3>Observed pattern</h3><p>Example: churned customers made more support calls.</p></div>
+    <div class="card orange"><h3>Random chance</h3><p>Maybe this sample is unusual and the pattern is not real.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-num="3/31">
+  <h2>Dataset 1: Telecom churn</h2>
+  <p>We want to know whether customers who churn call support more often.</p>
+  <div class="grid cols2">
+    <div>
+      <h3>Customers who stayed</h3>
+      <table><tr><th>Customer</th><th>Support Calls</th></tr><tr><td>A</td><td>1</td></tr><tr><td>B</td><td>2</td></tr><tr><td>C</td><td>1</td></tr><tr><td>D</td><td>3</td></tr><tr><td>E</td><td>2</td></tr></table>
+    </div>
+    <div>
+      <h3>Customers who churned</h3>
+      <table><tr><th>Customer</th><th>Support Calls</th></tr><tr><td>F</td><td>5</td></tr><tr><td>G</td><td>6</td></tr><tr><td>H</td><td>7</td></tr><tr><td>I</td><td>5</td></tr><tr><td>J</td><td>4</td></tr></table>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-num="4/31">
+  <h2>First look: calculate averages</h2>
+  <div class="grid cols2">
+    <div class="card green">
+      <h3>Stayed group</h3>
+      <p>Values: 1, 2, 1, 3, 2</p>
+      <p class="big">Average = 1.8 calls</p>
+    </div>
+    <div class="card red">
+      <h3>Churned group</h3>
+      <p>Values: 5, 6, 7, 5, 4</p>
+      <p class="big">Average = 5.4 calls</p>
+    </div>
+  </div>
+  <div class="formula">Difference = 5.4 - 1.8 = 3.6 calls</div>
+  <p class="center big">Looks important. But is it real?</p>
+</section>
+
+<section class="slide" data-num="5/31">
+  <h2>Why average alone is not enough</h2>
+  <p>Two datasets can have similar average differences but very different uncertainty.</p>
+  <div class="grid cols2">
+    <div class="card green">
+      <h3>Low variation</h3>
+      <p>Stayed: 1, 2, 1, 3, 2</p>
+      <p>Churned: 5, 6, 7, 5, 4</p>
+      <p><b>Groups are clearly separated.</b></p>
+    </div>
+    <div class="card orange">
+      <h3>High variation</h3>
+      <p>Stayed: 1, 10, 0, 8, 2</p>
+      <p>Churned: 4, 7, 5, 9, 2</p>
+      <p><b>Groups overlap a lot.</b></p>
+    </div>
+  </div>
+  <div class="callout"><p>Hypothesis testing uses both: <b>difference</b> and <b>variation</b>.</p></div>
+</section>
+
+<section class="slide" data-num="6/31">
+  <h2>Population vs sample</h2>
+  <div class="grid cols2">
+    <div class="card blue">
+      <h3>Population</h3>
+      <p>All customers we care about.</p>
+      <p>Example: 1,000,000 telecom customers.</p>
+    </div>
+    <div class="card purple">
+      <h3>Sample</h3>
+      <p>The few customers we actually measured.</p>
+      <p>Example: 10 customers in our small table.</p>
+    </div>
+  </div>
+  <div class="success"><p>Hypothesis testing helps us use a <b>sample</b> to make a careful statement about the <b>population</b>.</p></div>
+</section>
+
+<section class="slide" data-num="7/31">
+  <h2>Null and alternative hypotheses</h2>
+  <div class="grid cols2">
+    <div class="card blue">
+      <h3>Null hypothesis: H₀</h3>
+      <p>Default assumption.</p>
+      <p><b>Support calls are not different between churned and stayed customers.</b></p>
+    </div>
+    <div class="card green">
+      <h3>Alternative hypothesis: H₁</h3>
+      <p>What we are looking for.</p>
+      <p><b>Support calls are different between churned and stayed customers.</b></p>
+    </div>
+  </div>
+  <p class="center big">We start with H₀ and ask: does the data strongly disagree?</p>
+</section>
+
+<section class="slide" data-num="8/31">
+  <h2>Think like a courtroom</h2>
+  <div class="grid cols2">
+    <div class="card blue">
+      <h3>Court</h3>
+      <p>Start assumption: innocent.</p>
+      <p>Need strong evidence to convict.</p>
+    </div>
+    <div class="card purple">
+      <h3>Statistics</h3>
+      <p>Start assumption: no effect.</p>
+      <p>Need strong evidence to reject H₀.</p>
+    </div>
+  </div>
+  <div class="callout"><p>Failing to reject H₀ does not prove H₀ is true. It means we do not have enough evidence.</p></div>
+</section>
+
+<section class="slide" data-num="9/31">
+  <h2>Step-by-step workflow</h2>
+  <div class="grid cols3">
+    <div class="card blue"><h3>1</h3><p>Ask a question</p></div>
+    <div class="card blue"><h3>2</h3><p>Write H₀ and H₁</p></div>
+    <div class="card blue"><h3>3</h3><p>Collect sample data</p></div>
+    <div class="card green"><h3>4</h3><p>Measure difference</p></div>
+    <div class="card green"><h3>5</h3><p>Measure uncertainty</p></div>
+    <div class="card orange"><h3>6</h3><p>Decide if evidence is strong</p></div>
+  </div>
+</section>
+
+<section class="slide" data-num="10/31">
+  <h2>What is standard deviation?</h2>
+  <p>Standard deviation tells us how spread out individual values are.</p>
+  <div class="grid cols2">
+    <div class="card green">
+      <h3>Small spread</h3>
+      <p>2, 2, 3, 2, 3</p>
+      <p>Values are close together.</p>
+    </div>
+    <div class="card red">
+      <h3>Large spread</h3>
+      <p>0, 9, 2, 10, 1</p>
+      <p>Values jump around a lot.</p>
+    </div>
+  </div>
+  <div class="success"><p>More spread means more uncertainty.</p></div>
+</section>
+
+<section class="slide" data-num="11/31">
+  <h2>Our churn sample: spread</h2>
+  <table>
+    <tr><th>Group</th><th>Values</th><th>Mean</th><th>Standard Deviation</th></tr>
+    <tr><td>Stayed</td><td>1, 2, 1, 3, 2</td><td>1.8</td><td>0.84</td></tr>
+    <tr><td>Churned</td><td>5, 6, 7, 5, 4</td><td>5.4</td><td>1.14</td></tr>
+  </table>
+  <div class="callout"><p>The groups are not only different; each group also has low spread. That makes the difference more believable.</p></div>
+</section>
+
+<section class="slide" data-num="12/31">
+  <h2>What is standard error?</h2>
+  <p>Standard error tells us how much a sample average may move if we take another sample.</p>
+  <div class="formula">Standard Error = s / √n</div>
+  <div class="grid cols2">
+    <div class="card blue"><h3>s</h3><p>Spread in the data.</p><p>More spread → more uncertainty.</p></div>
+    <div class="card green"><h3>n</h3><p>Sample size.</p><p>More data → less uncertainty.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-num="13/31">
+  <h2>Why sample size matters</h2>
+  <div class="grid cols2">
+    <div class="card orange"><h3>5 customers</h3><p>Averages can change a lot if we sample again.</p><p><b>Less confidence.</b></p></div>
+    <div class="card green"><h3>5,000 customers</h3><p>Averages are more stable.</p><p><b>More confidence.</b></p></div>
+  </div>
+  <div class="formula">More data → smaller standard error → stronger evidence</div>
+</section>
+
+<section class="slide" data-num="14/31">
+  <h2>What is a t-test?</h2>
+  <p>A t-test compares the observed difference against the expected random variation.</p>
+  <div class="formula">t = Observed Difference / Expected Random Variation</div>
+  <div class="center">
+    <span class="pill">Signal</span>
+    <span class="pill">÷</span>
+    <span class="pill">Noise</span>
+    <span class="pill">=</span>
+    <span class="pill">t-value</span>
+  </div>
+</section>
+
+<section class="slide" data-num="15/31">
+  <h2>Our churn t-test result</h2>
+  <table>
+    <tr><th>Value</th><th>Meaning</th></tr>
+    <tr><td>Mean difference = 3.6</td><td>Churned customers made 3.6 more calls on average.</td></tr>
+    <tr><td>t-value = 5.69</td><td>The difference is large compared with expected noise.</td></tr>
+    <tr><td>p-value = 0.0006</td><td>This result is very unlikely if H₀ were true.</td></tr>
+  </table>
+  <div class="success"><p><b>Decision:</b> Reject H₀. Support calls look meaningfully different between groups.</p></div>
+</section>
+
+<section class="slide" data-num="16/31">
+  <h2>What does the p-value mean?</h2>
+  <p class="big">p-value answers:</p>
+  <div class="callout"><p>“If there were really no difference, how often would we see a sample result this extreme?”</p></div>
+  <div class="grid cols2">
+    <div class="card green"><h3>Small p-value</h3><p>Result is surprising under H₀.</p><p>Evidence against H₀.</p></div>
+    <div class="card orange"><h3>Large p-value</h3><p>Result is not surprising under H₀.</p><p>Weak evidence.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-num="17/31">
+  <h2>Decision rule: alpha</h2>
+  <p>Alpha is the cutoff we choose before testing.</p>
+  <div class="formula">Common alpha: α = 0.05</div>
+  <div class="grid cols2">
+    <div class="card green"><h3>If p ≤ 0.05</h3><p>Reject H₀.</p><p>Evidence is strong enough.</p></div>
+    <div class="card orange"><h3>If p > 0.05</h3><p>Fail to reject H₀.</p><p>Evidence is not strong enough.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-num="18/31">
+  <h2>Dataset 2: delivery time</h2>
+  <p>Company claims average delivery time is 30 minutes.</p>
+  <table>
+    <tr><th>Delivery Times</th></tr>
+    <tr><td>32, 31, 35, 28, 30, 33, 34, 31, 29, 32</td></tr>
+  </table>
+  <div class="grid cols3" style="margin-top:24px">
+    <div class="card blue"><h3>Claim</h3><p>μ = 30</p></div>
+    <div class="card green"><h3>Sample mean</h3><p>31.5</p></div>
+    <div class="card orange"><h3>Question</h3><p>Is delivery slower?</p></div>
+  </div>
+</section>
+
+<section class="slide" data-num="19/31">
+  <h2>One-sample t-test</h2>
+  <p>Use this when comparing one sample average to one claimed value.</p>
+  <div class="grid cols2">
+    <div class="card blue"><h3>H₀</h3><p>Average delivery time = 30 minutes.</p></div>
+    <div class="card green"><h3>H₁</h3><p>Average delivery time > 30 minutes.</p></div>
+  </div>
+  <table style="margin-top:24px">
+    <tr><th>Result</th><th>Meaning</th></tr>
+    <tr><td>t = 2.18</td><td>Sample mean is 2.18 standard errors above 30.</td></tr>
+    <tr><td>p = 0.028</td><td>Unusual if true mean were 30.</td></tr>
+  </table>
+</section>
+
+<section class="slide" data-num="20/31">
+  <h2>Types of t-tests</h2>
+  <div class="grid cols3">
+    <div class="card blue"><h3>One-sample</h3><p>Compare one sample to a known value.</p><p class="mini">Delivery time vs 30 minutes.</p></div>
+    <div class="card green"><h3>Two-sample</h3><p>Compare two independent groups.</p><p class="mini">Churned vs stayed customers.</p></div>
+    <div class="card purple"><h3>Paired</h3><p>Compare before/after for same subject.</p><p class="mini">Blood pressure before and after medicine.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-num="21/31">
+  <h2>Feature testing in machine learning</h2>
+  <p>Before training a model, we often ask: which features are related to the target?</p>
+  <table>
+    <tr><th>Customer</th><th>Age</th><th>Income</th><th>Support Calls</th><th>Churn</th></tr>
+    <tr><td>1</td><td>25</td><td>50K</td><td>1</td><td>No</td></tr>
+    <tr><td>2</td><td>60</td><td>80K</td><td>6</td><td>Yes</td></tr>
+    <tr><td>3</td><td>55</td><td>90K</td><td>5</td><td>Yes</td></tr>
+    <tr><td>4</td><td>22</td><td>40K</td><td>1</td><td>No</td></tr>
+  </table>
+</section>
+
+<section class="slide" data-num="22/31">
+  <h2>Do we test every feature?</h2>
+  <div class="success"><p><b>Sometimes yes</b>, especially during exploratory analysis and simple feature selection.</p></div>
+  <p>For each feature, ask:</p>
+  <div class="grid cols3">
+    <div class="card blue"><h3>Age</h3><p>Are ages different for churned vs stayed?</p></div>
+    <div class="card green"><h3>Income</h3><p>Are incomes different for churned vs stayed?</p></div>
+    <div class="card orange"><h3>Support Calls</h3><p>Are call counts different for churned vs stayed?</p></div>
+  </div>
+</section>
+
+<section class="slide" data-num="23/31">
+  <h2>Example feature test results</h2>
+  <table>
+    <tr><th>Feature</th><th>Test idea</th><th>p-value</th><th>Simple interpretation</th></tr>
+    <tr><td>Age</td><td>Compare average age</td><td>0.20</td><td>Weak evidence</td></tr>
+    <tr><td>Income</td><td>Compare average income</td><td>0.04</td><td>Some evidence</td></tr>
+    <tr><td>Support Calls</td><td>Compare average calls</td><td>0.0006</td><td>Strong evidence</td></tr>
+  </table>
+  <div class="callout"><p>Support Calls looks like a stronger signal than Age in this sample.</p></div>
+</section>
+
+<section class="slide" data-num="24/31">
+  <h2>Important: correlation is not causation</h2>
+  <div class="danger"><p>Hypothesis testing can show that churned customers had more support calls.</p></div>
+  <div class="callout"><p>It does <b>not</b> prove support calls caused churn.</p></div>
+  <p>Maybe customers called because they already had service problems. The real cause may be product quality, billing issues, or network outages.</p>
+</section>
+
+<section class="slide" data-num="25/31">
+  <h2>Regression also uses t-tests</h2>
+  <p>In linear regression, each feature gets a coefficient.</p>
+  <div class="formula">Y = β₀ + β₁Age + β₂Income + β₃Calls</div>
+  <p>For every coefficient, regression asks:</p>
+  <div class="grid cols2">
+    <div class="card blue"><h3>H₀</h3><p>β = 0</p><p>Feature adds no value.</p></div>
+    <div class="card green"><h3>H₁</h3><p>β ≠ 0</p><p>Feature contributes something.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-num="26/31">
+  <h2>Sample regression output</h2>
+  <table>
+    <tr><th>Feature</th><th>Coefficient</th><th>p-value</th><th>Meaning</th></tr>
+    <tr><td>Age</td><td>0.02</td><td>0.25</td><td>Not strong evidence after other features.</td></tr>
+    <tr><td>Income</td><td>0.10</td><td>0.04</td><td>May contribute.</td></tr>
+    <tr><td>Support Calls</td><td>0.80</td><td>0.001</td><td>Strong contribution.</td></tr>
+  </table>
+  <div class="success"><p>Regression p-values answer: does this feature still matter after considering other features?</p></div>
+</section>
+
+<section class="slide" data-num="27/31">
+  <h2>Dataset 3: A/B testing</h2>
+  <p>A website tests a new checkout page.</p>
+  <table>
+    <tr><th>Group</th><th>Visitors</th><th>Purchases</th><th>Conversion Rate</th></tr>
+    <tr><td>Old page</td><td>1000</td><td>40</td><td>4.0%</td></tr>
+    <tr><td>New page</td><td>1000</td><td>55</td><td>5.5%</td></tr>
+  </table>
+  <div class="callout"><p>Question: Did the new page really improve conversion, or is 5.5% just a lucky sample?</p></div>
+</section>
+
+<section class="slide" data-num="28/31">
+  <h2>A/B test interpretation</h2>
+  <table>
+    <tr><th>Value</th><th>Meaning</th></tr>
+    <tr><td>Difference = 1.5%</td><td>New page appears better.</td></tr>
+    <tr><td>p-value ≈ 0.057</td><td>Slightly above 0.05.</td></tr>
+    <tr><td>Decision at α = 0.05</td><td>Fail to reject H₀.</td></tr>
+  </table>
+  <div class="callout"><p>Simple words: the result is promising, but not strong enough under the 5% rule. We may need more data.</p></div>
+</section>
+
+<section class="slide" data-num="29/31">
+  <h2>Errors in hypothesis testing</h2>
+  <div class="grid cols2">
+    <div class="card red">
+      <h3>Type I Error</h3>
+      <p>False positive.</p>
+      <p>We say there is an effect, but there is no real effect.</p>
+    </div>
+    <div class="card orange">
+      <h3>Type II Error</h3>
+      <p>False negative.</p>
+      <p>We miss a real effect.</p>
+    </div>
+  </div>
+  <p class="center big">Good testing balances both risks.</p>
+</section>
+
+<section class="slide" data-num="30/31">
+  <h2>When do ML learners need this?</h2>
+  <div class="grid cols2">
+    <div class="card blue"><h3>Before modeling</h3><p>Understand data and identify possible useful features.</p></div>
+    <div class="card green"><h3>During modeling</h3><p>Interpret coefficients and decide which predictors matter.</p></div>
+    <div class="card orange"><h3>After modeling</h3><p>Check whether model improvement is meaningful.</p></div>
+    <div class="card purple"><h3>In production</h3><p>Monitor drift, A/B tests, and business changes.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-num="31/31">
+  <h2>Final mental model</h2>
+  <div class="center" style="margin-top:30px">
+    <p class="big">Hypothesis testing is a careful way to ask:</p>
+    <div class="formula">Signal > Noise?</div>
+  </div>
+  <div class="grid cols3">
+    <div class="card blue"><h3>Difference</h3><p>What changed?</p></div>
+    <div class="card orange"><h3>Uncertainty</h3><p>How noisy is the data?</p></div>
+    <div class="card green"><h3>Decision</h3><p>Is evidence strong enough?</p></div>
+  </div>
+  <div class="success"><p><b>Machine learning finds patterns. Hypothesis testing helps us decide whether patterns are likely real or just random.</b></p></div>
+</section>
+
+</div>
+
+<div class="nav">
+  <button onclick="prevSlide()">◀ Prev</button>
+  <span id="counter">1 / 31</span>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <button onclick="nextSlide()">Next ▶</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let current = 0;
+  function showSlide(i){
+    current = Math.max(0, Math.min(i, slides.length-1));
+    slides.forEach((s,idx)=>s.classList.toggle('active', idx===current));
+    document.getElementById('counter').textContent = `${current+1} / ${slides.length}`;
+    document.getElementById('bar').style.width = `${((current+1)/slides.length)*100}%`;
+  }
+  function nextSlide(){showSlide(current+1)}
+  function prevSlide(){showSlide(current-1)}
+  document.addEventListener('keydown', e => {
+    if(e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+    if(e.key === 'ArrowLeft') prevSlide();
+  });
+  showSlide(0);
+</script>
+</body>
+</html>
