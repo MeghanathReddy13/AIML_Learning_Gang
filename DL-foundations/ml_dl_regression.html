@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Linear Regression vs Deep Neural Networks</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --slide: #111827;
+      --card: #1f2937;
+      --text: #f9fafb;
+      --muted: #cbd5e1;
+      --accent: #38bdf8;
+      --accent2: #a78bfa;
+      --good: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .deck { width: 100%; }
+    .slide {
+      min-height: 100vh;
+      padding: 56px 72px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-bottom: 1px solid #334155;
+      background: radial-gradient(circle at top right, rgba(56,189,248,.12), transparent 35%), var(--slide);
+    }
+    .slide.light {
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    h1 { font-size: 54px; line-height: 1.05; margin: 0 0 24px; }
+    h2 { font-size: 42px; line-height: 1.15; margin: 0 0 24px; color: var(--accent); }
+    .light h2 { color: #0369a1; }
+    h3 { font-size: 28px; margin: 18px 0 12px; color: #e0f2fe; }
+    .light h3 { color: #075985; }
+    p, li { font-size: 25px; }
+    .small { font-size: 20px; color: var(--muted); }
+    .light .small { color: #475569; }
+    .subtitle { font-size: 30px; color: var(--muted); max-width: 980px; }
+    .accent { color: var(--accent); }
+    .grid { display: grid; gap: 24px; }
+    .two { grid-template-columns: 1fr 1fr; }
+    .three { grid-template-columns: repeat(3, 1fr); }
+    .card {
+      background: rgba(31,41,55,.92);
+      border: 1px solid #334155;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.22);
+    }
+    .light .card {
+      background: white;
+      border-color: #cbd5e1;
+      box-shadow: 0 12px 30px rgba(15,23,42,.08);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 22px;
+      overflow: hidden;
+      border-radius: 14px;
+    }
+    th, td { padding: 14px 16px; border: 1px solid #475569; text-align: center; }
+    th { background: #075985; color: white; }
+    .light th { background: #0369a1; }
+    .light td { border-color: #cbd5e1; }
+    code, .eq {
+      background: #020617;
+      color: #e0f2fe;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: block;
+      font-size: 26px;
+      margin: 14px 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .light code, .light .eq { background: #e0f2fe; color: #082f49; border-color: #bae6fd; }
+    .diagram {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 24px;
+      white-space: pre;
+      background: #020617;
+      color: #bae6fd;
+      padding: 24px;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      overflow-x: auto;
+    }
+    .light .diagram { background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
+    .tag { display: inline-block; padding: 8px 14px; border-radius: 999px; background: rgba(56,189,248,.16); color: #bae6fd; font-size: 20px; margin: 6px 8px 6px 0; }
+    .light .tag { color: #075985; background: #e0f2fe; }
+    .bigidea { font-size: 34px; font-weight: 750; padding: 26px; border-left: 8px solid var(--accent); background: rgba(56,189,248,.12); border-radius: 14px; }
+    .note { border-left: 8px solid var(--warn); padding: 18px 24px; background: rgba(245,158,11,.12); border-radius: 12px; font-size: 24px; }
+    .footer { margin-top: 28px; font-size: 18px; color: var(--muted); }
+    .pill-row { margin-top: 24px; }
+    @media print {
+      .slide { min-height: 100vh; page-break-after: always; }
+    }
+  </style>
+</head>
+<body>
+<div class="deck">
+
+  <section class="slide">
+    <h1>Linear Regression vs Deep Neural Networks</h1>
+    <p class="subtitle">A student-friendly explanation using one dataset: how models learn from features, how hidden layers create learned representations, and how linear learning becomes nonlinear.</p>
+    <div class="pill-row">
+      <span class="tag">Dataset</span><span class="tag">Weights</span><span class="tag">Hidden Layers</span><span class="tag">Activations</span><span class="tag">Nonlinearity</span>
+    </div>
+  </section>
+
+  <section class="slide light">
+    <h2>1. The Learning Problem</h2>
+    <p>We want a model to predict <b>house price</b> from known input features.</p>
+    <table>
+      <tr><th>Size sq ft</th><th>Bedrooms</th><th>Age years</th><th>Price $1000s</th></tr>
+      <tr><td>1000</td><td>2</td><td>20</td><td>150</td></tr>
+      <tr><td>1200</td><td>2</td><td>15</td><td>180</td></tr>
+      <tr><td>1500</td><td>3</td><td>10</td><td>250</td></tr>
+      <tr><td>1800</td><td>3</td><td>5</td><td>320</td></tr>
+      <tr><td>2200</td><td>4</td><td>2</td><td>450</td></tr>
+    </table>
+    <p class="bigidea">Input features: Size, Bedrooms, Age. Target: Price.</p>
+  </section>
+
+  <section class="slide">
+    <h2>2. What Linear Regression Learns</h2>
+    <p>Linear regression learns one weighted equation:</p>
+    <div class="eq">Price = w₁(Size) + w₂(Bedrooms) + w₃(Age) + b</div>
+    <p>Example learned model:</p>
+    <div class="eq">Price = 0.18(Size) + 40(Bedrooms) - 2(Age) - 80</div>
+    <p>Each feature directly contributes to the final prediction.</p>
+  </section>
+
+  <section class="slide light">
+    <h2>3. Linear Regression Prediction Example</h2>
+    <p>For a house with Size = 1600, Bedrooms = 3, Age = 8:</p>
+    <div class="eq">Price = 0.18(1600) + 40(3) - 2(8) - 80</div>
+    <div class="eq">Price = 288 + 120 - 16 - 80 = 312</div>
+    <p class="bigidea">Predicted price = $312,000</p>
+  </section>
+
+  <section class="slide">
+    <h2>4. What Do Linear Weights Mean?</h2>
+    <div class="grid three">
+      <div class="card"><h3>Size weight</h3><p>0.18</p><p class="small">Larger houses increase predicted price.</p></div>
+      <div class="card"><h3>Bedroom weight</h3><p>40</p><p class="small">More bedrooms increase predicted price.</p></div>
+      <div class="card"><h3>Age weight</h3><p>-2</p><p class="small">Older houses decrease predicted price.</p></div>
+    </div>
+    <p class="note">Linear regression is easy to interpret because the model directly uses the original features.</p>
+  </section>
+
+  <section class="slide light">
+    <h2>5. Limitation of Linear Regression</h2>
+    <p>Linear regression works well when the relationship is close to a straight-line pattern.</p>
+    <div class="diagram">Price
+  ^
+  |             *
+  |          *
+  |       *
+  |    *
+  | *
+  +--------------------> Size</div>
+    <p class="bigidea">If the real pattern bends, jumps, or depends on feature combinations, one linear equation may not fit well.</p>
+  </section>
+
+  <section class="slide">
+    <h2>6. Neural Network: Same Inputs, Different Learning</h2>
+    <p>A neural network also starts with the same input features.</p>
+    <div class="diagram">Size --------\
+Bedrooms ----- > Hidden Layer(s) ----> Price
+Age ----------/</div>
+    <p class="note">Important: The neural network cannot use information that is not in the input data.</p>
+  </section>
+
+  <section class="slide light">
+    <h2>7. Hidden Layers Do Not Create New Data</h2>
+    <p>If the dataset contains only:</p>
+    <div class="eq">X = [Size, Bedrooms, Age]</div>
+    <p>then every hidden layer is built from those features.</p>
+    <p class="bigidea">A hidden layer creates new <b>representations</b> of the existing information, not new external information.</p>
+  </section>
+
+  <section class="slide">
+    <h2>8. How One Hidden Neuron Works</h2>
+    <p>A hidden neuron computes a weighted combination:</p>
+    <div class="eq">z = w₁(Size) + w₂(Bedrooms) + w₃(Age) + b</div>
+    <p>Then it applies an activation function:</p>
+    <div class="eq">h = activation(z)</div>
+    <p>The output <b>h</b> becomes a new learned feature for the next layer.</p>
+  </section>
+
+  <section class="slide light">
+    <h2>9. Example: A Learned Feature</h2>
+    <p>Suppose a hidden neuron learns:</p>
+    <div class="eq">h₁ = ReLU(0.8(Size) + 1.5(Bedrooms) - 2(Age))</div>
+    <p>This might behave like a:</p>
+    <div class="bigidea">LuxuryScore = Large size + many bedrooms - old age</div>
+    <p class="small">The network does not name it LuxuryScore. We give it that name to understand its behavior.</p>
+  </section>
+
+  <section class="slide">
+    <h2>10. Multiple Hidden Neurons Learn Multiple Patterns</h2>
+    <div class="grid two">
+      <div class="card"><h3>Neuron 1</h3><div class="eq">h₁ = ReLU(0.8Size + 1.5Bedrooms - 2Age)</div><p>Luxury-like pattern</p></div>
+      <div class="card"><h3>Neuron 2</h3><div class="eq">h₂ = ReLU(-0.3Size + 2Bedrooms)</div><p>Bedroom-heavy pattern</p></div>
+      <div class="card"><h3>Neuron 3</h3><div class="eq">h₃ = ReLU(-Age)</div><p>Newness pattern</p></div>
+      <div class="card"><h3>Neuron 4</h3><div class="eq">h₄ = ReLU(Size - Age)</div><p>Premium-like pattern</p></div>
+    </div>
+  </section>
+
+  <section class="slide light">
+    <h2>11. Why We Call Them “New Features”</h2>
+    <p>Original features:</p>
+    <div class="eq">Size, Bedrooms, Age</div>
+    <p>Learned features:</p>
+    <div class="eq">LuxuryScore, ModernityScore, FamilyHomeScore</div>
+    <p class="bigidea">They are not new columns from the outside world. They are useful transformations of the original columns.</p>
+  </section>
+
+  <section class="slide">
+    <h2>12. Cooking Analogy</h2>
+    <div class="grid two">
+      <div class="card"><h3>Ingredients</h3><p>Flour<br>Sugar<br>Butter</p></div>
+      <div class="card"><h3>Combinations</h3><p>Cake batter<br>Cookie dough<br>Pastry dough</p></div>
+    </div>
+    <p class="bigidea">Hidden layers are like combining ingredients. They do not create new ingredients; they create useful combinations.</p>
+  </section>
+
+  <section class="slide light">
+    <h2>13. How Does Learning Improve These Features?</h2>
+    <p>At the beginning, weights are random, so hidden features are mostly useless.</p>
+    <div class="diagram">Random weights
+   ↓
+Bad predictions
+   ↓
+Prediction error
+   ↓
+Backpropagation adjusts weights
+   ↓
+Useful hidden features</div>
+  </section>
+
+  <section class="slide">
+    <h2>14. Backpropagation in Simple Words</h2>
+    <p>Backpropagation asks:</p>
+    <div class="grid three">
+      <div class="card"><h3>1</h3><p>How wrong was the prediction?</p></div>
+      <div class="card"><h3>2</h3><p>Which weights contributed to the error?</p></div>
+      <div class="card"><h3>3</h3><p>How should weights change to reduce future error?</p></div>
+    </div>
+    <p class="note">Over many updates, neurons become detectors for useful patterns.</p>
+  </section>
+
+  <section class="slide light">
+    <h2>15. Linear + Linear Is Still Linear</h2>
+    <p>Suppose we stack two linear layers without activation:</p>
+    <div class="eq">h = W₁x + b₁</div>
+    <div class="eq">y = W₂h + b₂</div>
+    <p>Substitute h into y:</p>
+    <div class="eq">y = W₂(W₁x + b₁) + b₂ = Wx + b</div>
+    <p class="bigidea">Many linear layers collapse into one linear layer.</p>
+  </section>
+
+  <section class="slide">
+    <h2>16. So How Does Linear Become Nonlinear?</h2>
+    <p>The activation function makes the network nonlinear.</p>
+    <div class="eq">Linear step: z = Wx + b</div>
+    <div class="eq">Nonlinear step: h = ReLU(z)</div>
+    <p class="bigidea">Linear + Activation + Linear + Activation = Nonlinear model</p>
+  </section>
+
+  <section class="slide light">
+    <h2>17. ReLU Activation</h2>
+    <p>ReLU means:</p>
+    <div class="eq">ReLU(z) = 0 if z &lt; 0, otherwise z</div>
+    <div class="diagram">Output
+  ^
+  |        /
+  |       /
+  |      /
+  |_____/
+  |
+  +----------------> z</div>
+    <p class="note">ReLU creates a bend. That bend is what breaks pure linearity.</p>
+  </section>
+
+  <section class="slide">
+    <h2>18. ReLU as a Threshold Detector</h2>
+    <p>Example hidden neuron:</p>
+    <div class="eq">h₁ = ReLU(Size - 2000)</div>
+    <table>
+      <tr><th>Size</th><th>h₁</th></tr>
+      <tr><td>1000</td><td>0</td></tr>
+      <tr><td>1500</td><td>0</td></tr>
+      <tr><td>2000</td><td>0</td></tr>
+      <tr><td>2200</td><td>200</td></tr>
+      <tr><td>2500</td><td>500</td></tr>
+    </table>
+    <p class="bigidea">The neuron activates only when Size is above 2000.</p>
+  </section>
+
+  <section class="slide light">
+    <h2>19. Nonlinear House Price Pattern</h2>
+    <p>Suppose luxury pricing jumps when a house is large and has many bedrooms.</p>
+    <table>
+      <tr><th>Size</th><th>Bedrooms</th><th>Price</th></tr>
+      <tr><td>1800</td><td>3</td><td>300</td></tr>
+      <tr><td>1900</td><td>3</td><td>320</td></tr>
+      <tr><td>2100</td><td>4</td><td>600</td></tr>
+      <tr><td>2200</td><td>4</td><td>650</td></tr>
+    </table>
+    <p class="note">The important pattern is not Size alone or Bedrooms alone. It is their combination.</p>
+  </section>
+
+  <section class="slide">
+    <h2>20. Linear Regression Struggles Here</h2>
+    <p>Linear regression tries to explain the data with steady change.</p>
+    <div class="diagram">Price
+  ^
+  |             * luxury
+  |
+  |        *
+  |   * normal
+  | *
+  +----------------------> Size</div>
+    <p class="bigidea">A single straight line cannot easily model a sudden luxury premium.</p>
+  </section>
+
+  <section class="slide light">
+    <h2>21. Neural Network Can Learn the Jump</h2>
+    <p>Hidden neurons can learn detectors like:</p>
+    <div class="eq">h₁ = ReLU(Size - 2000)</div>
+    <div class="eq">h₂ = ReLU(Bedrooms - 3)</div>
+    <p>Then the output layer combines them:</p>
+    <div class="eq">Price = base + 2h₁ + 3h₂ + luxury adjustment</div>
+    <p class="bigidea">This allows the model to represent nonlinear rules.</p>
+  </section>
+
+  <section class="slide">
+    <h2>22. Deep Layers Build Feature Hierarchies</h2>
+    <div class="diagram">Input Features
+Size, Bedrooms, Age
+        ↓
+Layer 1
+Large house, New house, Many bedrooms
+        ↓
+Layer 2
+Luxury home, Family home, Modern home
+        ↓
+Output
+Predicted price</div>
+  </section>
+
+  <section class="slide light">
+    <h2>23. Image Example: Same Idea</h2>
+    <p>In image recognition, the raw input is pixels.</p>
+    <div class="diagram">Pixels
+  ↓
+Edges, lines, corners
+  ↓
+Eyes, nose, mouth
+  ↓
+Face
+  ↓
+Prediction</div>
+    <p class="bigidea">Each layer transforms simple inputs into more meaningful learned features.</p>
+  </section>
+
+  <section class="slide">
+    <h2>24. Key Comparison</h2>
+    <table>
+      <tr><th>Aspect</th><th>Linear Regression</th><th>Deep Neural Network</th></tr>
+      <tr><td>Learning style</td><td>One equation</td><td>Many layered transformations</td></tr>
+      <tr><td>Pattern type</td><td>Linear</td><td>Nonlinear</td></tr>
+      <tr><td>Feature use</td><td>Uses input features directly</td><td>Transforms features into learned representations</td></tr>
+      <tr><td>Interpretability</td><td>High</td><td>Lower</td></tr>
+      <tr><td>Data need</td><td>Small to medium</td><td>Usually larger</td></tr>
+      <tr><td>Overfitting risk</td><td>Lower</td><td>Higher</td></tr>
+    </table>
+  </section>
+
+  <section class="slide light">
+    <h2>25. The Most Important Takeaways</h2>
+    <div class="grid two">
+      <div class="card"><h3>Linear Regression</h3><p>Finds one best weighted equation from input features to prediction.</p></div>
+      <div class="card"><h3>Hidden Layer</h3><p>Creates learned combinations of existing input features.</p></div>
+      <div class="card"><h3>Activation</h3><p>Introduces nonlinearity. Without it, deep linear layers collapse into one linear model.</p></div>
+      <div class="card"><h3>Deep Learning</h3><p>Builds layers of representations that make complex prediction easier.</p></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <h2>26. Final Mental Model</h2>
+    <div class="grid two">
+      <div class="card">
+        <h3>Linear Regression</h3>
+        <div class="diagram">Features
+   ↓
+Weighted sum
+   ↓
+Prediction</div>
+      </div>
+      <div class="card">
+        <h3>Deep Neural Network</h3>
+        <div class="diagram">Features
+   ↓
+Learned features
+   ↓
+Higher-level features
+   ↓
+Prediction</div>
+      </div>
+    </div>
+    <p class="bigidea">Deep learning does not create new information. It learns better representations of the information already present in the input.</p>
+  </section>
+
+  <section class="slide light">
+    <h2>Class Discussion Questions</h2>
+    <ol>
+      <li>Why is a deep network without activation functions still linear?</li>
+      <li>What does a hidden neuron actually compute?</li>
+      <li>Why is “learned feature” not the same as “new external data”?</li>
+      <li>When would linear regression be preferred over a neural network?</li>
+      <li>What kind of datasets benefit from deep neural networks?</li>
+    </ol>
+  </section>
+
+</div>
+</body>
+</html>

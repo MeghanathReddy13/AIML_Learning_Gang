@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How Hidden Neurons Learn Patterns</title>
+<style>
+  :root{--bg:#0f172a;--card:#111827;--ink:#f8fafc;--muted:#cbd5e1;--accent:#38bdf8;--good:#86efac;--warn:#fbbf24;--bad:#fca5a5;}
+  *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);overflow:hidden}
+  .deck{height:100vh;width:100vw;position:relative}.slide{display:none;height:100vh;width:100vw;padding:54px 72px;position:absolute;inset:0}.slide.active{display:flex;flex-direction:column;justify-content:center;gap:26px}
+  h1{font-size:58px;line-height:1.02;margin:0;letter-spacing:-1.4px}h2{font-size:44px;line-height:1.08;margin:0;color:#e0f2fe}h3{font-size:28px;margin:0;color:#bae6fd}.big{font-size:30px;line-height:1.35}.body{font-size:23px;line-height:1.45;color:var(--muted);max-width:1050px}.small{font-size:17px;color:#94a3b8}.accent{color:var(--accent)}.good{color:var(--good)}.warn{color:var(--warn)}
+  .grid{display:grid;gap:22px}.cols2{grid-template-columns:1fr 1fr}.cols3{grid-template-columns:repeat(3,1fr)}.card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:26px;box-shadow:0 22px 80px rgba(0,0,0,.22)}
+  table{border-collapse:collapse;width:100%;font-size:20px;background:rgba(255,255,255,.04);border-radius:18px;overflow:hidden}th,td{padding:13px 15px;border-bottom:1px solid rgba(255,255,255,.10);text-align:left}th{color:#e0f2fe;background:rgba(56,189,248,.14)}td{color:#e5e7eb}.center{text-align:center}.formula{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:26px;background:rgba(2,6,23,.65);border:1px solid rgba(148,163,184,.22);border-radius:18px;padding:18px 20px;color:#f8fafc}.diagram{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre;font-size:22px;line-height:1.25;background:rgba(2,6,23,.55);border-radius:22px;padding:24px;border:1px solid rgba(255,255,255,.1)}
+  .pill{display:inline-block;padding:8px 13px;border-radius:999px;background:rgba(56,189,248,.15);color:#bae6fd;border:1px solid rgba(56,189,248,.35);font-size:18px;margin:4px 6px 4px 0}.step{font-size:26px;padding:18px 22px;border-left:7px solid var(--accent);background:rgba(255,255,255,.06);border-radius:14px}.footer{position:absolute;bottom:18px;left:72px;right:72px;display:flex;justify-content:space-between;color:#94a3b8;font-size:15px}.nav{position:fixed;bottom:18px;right:24px;z-index:5;display:flex;gap:8px}.nav button{background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:12px;padding:10px 14px;cursor:pointer;font-size:15px}.progress{position:fixed;left:0;bottom:0;height:5px;background:var(--accent);width:0%;transition:.2s;z-index:10}.muted{color:var(--muted)}.arrow{font-size:34px;color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<section class="slide active">
+  <h1>How Hidden Neurons Learn Patterns</h1>
+  <div class="body big">A simplified student-friendly walkthrough using a small house dataset.</div>
+  <div><span class="pill">Linear combinations</span><span class="pill">Different weights</span><span class="pill">Activation</span><span class="pill">Backpropagation</span><span class="pill">Representation learning</span></div>
+</section>
+
+<section class="slide">
+  <h2>1. Start with the dataset</h2>
+  <div class="body">We want to predict whether a house is <b>Luxury</b>.</div>
+  <table>
+    <tr><th>House</th><th>Size</th><th>Bedrooms</th><th>Age</th><th>Luxury?</th></tr>
+    <tr><td>A</td><td>1500</td><td>2</td><td>20</td><td>No</td></tr>
+    <tr><td>B</td><td>1800</td><td>3</td><td>15</td><td>No</td></tr>
+    <tr><td>C</td><td>2200</td><td>4</td><td>5</td><td>Yes</td></tr>
+    <tr><td>D</td><td>2500</td><td>5</td><td>2</td><td>Yes</td></tr>
+    <tr><td>E</td><td>1200</td><td>2</td><td>25</td><td>No</td></tr>
+    <tr><td>F</td><td>2700</td><td>5</td><td>1</td><td>Yes</td></tr>
+  </table>
+</section>
+
+<section class="slide">
+  <h2>2. The network only sees input features</h2>
+  <div class="grid cols2">
+    <div class="card">
+      <h3>Input features</h3>
+      <div class="formula">X = [Size, Bedrooms, Age]</div>
+      <div class="body">The network does not magically know neighborhood, school rating, or income level unless we provide those features.</div>
+    </div>
+    <div class="card">
+      <h3>Learned features</h3>
+      <div class="body">Hidden layers create <span class="accent">new combinations</span> of the provided input features.</div>
+      <div class="formula">Hidden feature = f(w₁Size + w₂Bedrooms + w₃Age + b)</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>3. One hidden layer with three neurons</h2>
+  <div class="diagram center">Input Layer                      Hidden Layer
+
+Size      ───────────────┐       h₁
+Bedrooms  ───────────────┼────▶  h₂
+Age       ───────────────┘       h₃</div>
+  <div class="body">In a fully connected layer, <b>each hidden neuron receives all inputs</b>.</div>
+</section>
+
+<section class="slide">
+  <h2>4. Same inputs, different weights</h2>
+  <div class="body">h₁, h₂, and h₃ are called different neurons because each has its own weight vector.</div>
+  <div class="grid cols3">
+    <div class="card"><h3>Neuron h₁</h3><div class="formula">h₁ = ReLU(0.9Size + 0.8Bed − 0.7Age)</div></div>
+    <div class="card"><h3>Neuron h₂</h3><div class="formula">h₂ = ReLU(0.1Size + 2.5Bed + 0.2Age)</div></div>
+    <div class="card"><h3>Neuron h₃</h3><div class="formula">h₃ = ReLU(−0.2Size + 0.1Bed − 3Age)</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>5. Think of each neuron as a different perspective</h2>
+  <div class="grid cols3">
+    <div class="card"><h3>h₁</h3><p class="body">Looks at size, bedrooms, and age together.</p><p class="big good">Luxury potential</p></div>
+    <div class="card"><h3>h₂</h3><p class="body">Gives high importance to bedrooms.</p><p class="big good">Family-house score</p></div>
+    <div class="card"><h3>h₃</h3><p class="body">Strongly reacts to newer homes.</p><p class="big good">Modernity score</p></div>
+  </div>
+  <div class="small">These names are for teaching. The model only learns numbers, not labels.</div>
+</section>
+
+<section class="slide">
+  <h2>6. Calculate hidden values for one house</h2>
+  <div class="card">
+    <h3>House C</h3>
+    <div class="formula">Size = 2200, Bedrooms = 4, Age = 5</div>
+  </div>
+  <div class="grid cols3">
+    <div class="card"><div class="formula">h₁ = ReLU(1980 + 3.2 − 3.5) = 1979.7</div></div>
+    <div class="card"><div class="formula">h₂ = ReLU(220 + 10 + 1) = 231</div></div>
+    <div class="card"><div class="formula">h₃ = ReLU(−440 + 0.4 − 15) = 0</div></div>
+  </div>
+  <div class="body">The original row becomes a new representation: <span class="accent">[1979.7, 231, 0]</span></div>
+</section>
+
+<section class="slide">
+  <h2>7. The next layer sees hidden features, not raw features</h2>
+  <div class="diagram center">Original features                 Hidden representation
+
+[Size, Bedrooms, Age]       ───▶       [h₁, h₂, h₃]
+[2200, 4, 5]                ───▶       [1979.7, 231, 0]</div>
+  <div class="body">The network has transformed the data into a new feature space that may be easier for prediction.</div>
+</section>
+
+<section class="slide">
+  <h2>8. Why multiple neurons?</h2>
+  <div class="grid cols2">
+    <div class="card"><h3>One neuron</h3><div class="body">Can learn one useful combination of the inputs.</div><div class="formula">h₁ = one view of the house</div></div>
+    <div class="card"><h3>Multiple neurons</h3><div class="body">Can learn many useful combinations at the same time.</div><div class="formula">[h₁, h₂, h₃] = multiple views</div></div>
+  </div>
+  <div class="step">Same inputs + different weights = different learned patterns.</div>
+</section>
+
+<section class="slide">
+  <h2>9. How does learning actually happen?</h2>
+  <div class="grid">
+    <div class="step">1. Start with random weights.</div>
+    <div class="step">2. Make a prediction using forward pass.</div>
+    <div class="step">3. Compare prediction with actual answer.</div>
+    <div class="step">4. Backpropagation finds which weights caused error.</div>
+    <div class="step">5. Update weights and repeat many times.</div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>10. Before and after training</h2>
+  <div class="grid cols2">
+    <div class="card">
+      <h3>Before training</h3>
+      <div class="body">Weights are random, so hidden neurons are mostly meaningless.</div>
+      <div class="formula">h₁ = random combination</div>
+      <div class="formula">h₂ = random combination</div>
+    </div>
+    <div class="card">
+      <h3>After training</h3>
+      <div class="body">Weights become useful because they reduce prediction error.</div>
+      <div class="formula">h₁ ≈ luxury potential</div>
+      <div class="formula">h₂ ≈ family-house signal</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>11. Where does nonlinearity come from?</h2>
+  <div class="body">The weighted sum is linear, but the activation function makes it nonlinear.</div>
+  <div class="formula">z = w₁x₁ + w₂x₂ + b</div>
+  <div class="formula">h = ReLU(z) = max(0, z)</div>
+  <div class="diagram center">z negative ──▶ 0
+z positive ──▶ z</div>
+</section>
+
+<section class="slide">
+  <h2>12. ReLU acts like a pattern gate</h2>
+  <div class="formula">h = ReLU(Size − 2000)</div>
+  <table>
+    <tr><th>Size</th><th>Size − 2000</th><th>h</th><th>Meaning</th></tr>
+    <tr><td>1500</td><td>−500</td><td>0</td><td>Neuron off</td></tr>
+    <tr><td>2000</td><td>0</td><td>0</td><td>Neuron off</td></tr>
+    <tr><td>2200</td><td>200</td><td>200</td><td>Neuron on</td></tr>
+    <tr><td>2700</td><td>700</td><td>700</td><td>Strongly on</td></tr>
+  </table>
+  <div class="body">This creates threshold-like behavior that plain linear regression cannot create by itself.</div>
+</section>
+
+<section class="slide">
+  <h2>13. Matrix view: one layer at once</h2>
+  <div class="formula">H = ReLU(XW + b)</div>
+  <div class="grid cols2">
+    <div class="card"><h3>X</h3><div class="formula">[Size, Bedrooms, Age]</div></div>
+    <div class="card"><h3>W</h3><div class="body">Each column of W belongs to one neuron.</div><div class="formula">Column 1 → h₁<br>Column 2 → h₂<br>Column 3 → h₃</div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>14. Layer 2 combines Layer 1 patterns</h2>
+  <div class="diagram center">Layer 1 outputs                 Layer 2 neurons
+
+h₁  ───────────────┐             g₁
+h₂  ───────────────┼──────▶      g₂
+h₃  ───────────────┘</div>
+  <div class="body">Layer 2 does the same thing again: it receives all previous outputs, uses different weights, applies activation, and creates more abstract features.</div>
+</section>
+
+<section class="slide">
+  <h2>15. Simple mental model</h2>
+  <div class="diagram center">Raw inputs
+Size, Bedrooms, Age
+        ↓
+Layer 1 learns simple combinations
+Large? Many bedrooms? New?
+        ↓
+Layer 2 combines those patterns
+Luxury candidate? Family home?
+        ↓
+Output
+Luxury: Yes or No</div>
+</section>
+
+<section class="slide">
+  <h2>16. Key takeaway</h2>
+  <div class="card">
+    <div class="big">A hidden neuron receives all inputs from the previous layer, but it has its own weights.</div>
+    <br>
+    <div class="big">Different weights create different combinations.</div>
+    <br>
+    <div class="big">Activation functions turn those combinations into nonlinear pattern detectors.</div>
+    <br>
+    <div class="big accent">Multiple neurons learn multiple useful representations of the same data.</div>
+  </div>
+</section>
+
+</div>
+<div class="nav"><button onclick="prev()">◀</button><button onclick="next()">▶</button></div>
+<div class="progress" id="progress"></div>
+<script>
+const slides=[...document.querySelectorAll('.slide')];let i=0;
+function show(n){i=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,k)=>s.classList.toggle('active',k===i));document.getElementById('progress').style.width=((i+1)/slides.length*100)+'%'}
+function next(){show(i+1)} function prev(){show(i-1)}
+document.addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' '].includes(e.key))next(); if(['ArrowLeft','PageUp'].includes(e.key))prev();});show(0);
+</script>
+</body>
+</html>
